@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>שאלון חיבור ואישיות מול הגלים</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #151d30;
+            --text-main: #ffffff;
+            --text-muted: #a0aec0;
+            --accent: #d4af37; /* Gold */
+            --accent-hover: #f3cf65;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: linear-gradient(180deg, #0b0f19 0%, #0d1424 50%, #0a1828 100%);
+            color: var(--text-main);
+            margin: 0;
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .quiz-container {
+            background-color: var(--card-bg);
+            padding: 28px 24px;
+            border-radius: 18px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.55);
+            max-width: 540px;
+            width: 100%;
+            border: 1px solid rgba(212, 175, 55, 0.22);
+            margin-top: 8px;
+        }
+
+        .screen { display: none; }
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.35s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            color: var(--accent);
+            margin-top: 0;
+            font-size: 22px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            padding-bottom: 10px;
+            line-height: 1.45;
+        }
+
+        p.description {
+            color: var(--text-muted);
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .chapter-chip {
+            display: inline-block;
+            background-color: rgba(212, 175, 55, 0.12);
+            border: 1px solid rgba(212, 175, 55, 0.35);
+            color: var(--accent);
+            font-size: 13px;
+            font-weight: bold;
+            padding: 5px 12px;
+            border-radius: 999px;
+            margin-bottom: 12px;
+        }
+
+        .instruction-box {
+            background-color: rgba(212, 175, 55, 0.1);
+            border-right: 4px solid var(--accent);
+            padding: 12px;
+            margin: 18px 0;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #e2e8f0;
+            line-height: 1.65;
+        }
+
+        .option-btn {
+            background-color: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-main);
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: right;
+            font-size: 16px;
+            line-height: 1.55;
+            transition: all 0.18s ease;
+        }
+
+        .option-btn:hover, .option-btn:active {
+            background-color: rgba(212, 175, 55, 0.15);
+            border-color: var(--accent);
+            transform: translateX(-3px);
+        }
+
+        .start-btn, .restart-btn, .copy-btn {
+            background-color: var(--accent);
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s;
+            margin-top: 18px;
+        }
+
+        .start-btn:hover, .restart-btn:hover, .copy-btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .copy-btn {
+            background-color: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            font-size: 15px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+
+        .back-btn, .finish-early-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 8px 0;
+            margin-top: 5px;
+            display: block;
+        }
+        .back-btn:hover, .finish-early-btn:hover { color: var(--accent); }
+        .finish-early-btn { margin-right: auto; }
+
+        .quiz-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .progress-bar {
+            height: 7px;
+            background-color: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #f3cf65);
+            width: 0%;
+            transition: width 0.35s ease;
+        }
+
+        .progress-text {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+
+        .result-item {
+            margin-bottom: 22px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            line-height: 1.6;
+        }
+
+        .result-title {
+            color: var(--accent);
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .result-choice {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-style: italic;
+        }
+
+        .followup {
+            margin-top: 10px;
+            background-color: rgba(212, 175, 55, 0.08);
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 14px;
+            color: #e2e8f0;
+            line-height: 1.6;
+        }
+        .followup strong { color: var(--accent); }
+
+        .profile-box {
+            background: linear-gradient(135deg, rgba(212,175,55,0.18), rgba(212,175,55,0.05));
+            border: 1px solid var(--accent);
+            border-radius: 14px;
+            padding: 20px;
+            margin: 22px 0;
+            line-height: 1.7;
+        }
+        .profile-box h3 {
+            margin-top: 0;
+            color: var(--accent);
+            font-size: 20px;
+        }
+
+        .dist-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .dist-label { width: 92px; flex-shrink: 0; }
+        .dist-track {
+            flex-grow: 1;
+            height: 10px;
+            background-color: rgba(255,255,255,0.08);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .dist-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #f3cf65);
+            border-radius: 5px;
+            transition: width 0.6s ease;
+        }
+        .dist-pct { width: 40px; color: var(--text-muted); flex-shrink: 0; }
+
+        .conclusion-box {
+            background-color: rgba(255,255,255,0.04);
+            border: 1px solid rgba(212,175,55,0.3);
+            border-radius: 14px;
+            padding: 20px;
+            margin: 22px 0;
+            line-height: 1.8;
+        }
+        .conclusion-box h3 {
+            margin-top: 0;
+            color: var(--accent);
+            font-size: 19px;
+        }
+        .conclusion-box ul {
+            padding-right: 18px;
+            margin: 10px 0;
+        }
+        .conclusion-box li { margin-bottom: 8px; }
+        .conclusion-final {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px dashed rgba(212,175,55,0.35);
+            font-size: 16px;
+        }
+
+        .chapter-header-results {
+            color: var(--accent);
+            font-size: 17px;
+            font-weight: bold;
+            margin: 28px 0 14px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(212,175,55,0.25);
+        }
+
+        details.details-toggle summary {
+            cursor: pointer;
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 16px;
+            padding: 12px 0;
+            list-style-position: inside;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+
+    <!-- מסך פתיחה -->
+    <div id="screen-welcome" class="screen active">
+        <h2>🌊 משחק אבחון אישיות מול הגלים</h2>
+        <p class="description">מסע זוגי של 30 שאלות ב־6 פרקים: היא מול החיים, הקשר ביניכם, רגש ותקשורת, העבר והשורשים, תשוקות וחלומות, והעתיד שלכם.</p>
+        <div class="instruction-box">
+            <strong>איך משחקים?</strong><br>
+            מקריאים לה את השאלה והאפשרויות. היא בוחרת תשובה, ואתה מקיש אותה בלחיצה.<br><br>
+            <strong>תרגיל הפסיכולוגית:</strong> אחרי כל בחירה, הקשב לה מסבירה את הבחירה עד הסוף, ושקף לה את דבריה ("אז מה שאת אומרת זה ש...") . רק אז מתקדמים.<br><br>
+            <strong>בסוף:</strong> פיענוח לכל תשובה + שאלת עומק להמשך + תובנה לכל פרק + מסקנה סופית עליה.<br><br>
+            ⏱️ אפשר לעצור מתי שרוצים — אחרי 10 שאלות ייפתח כפתור "סיום מוקדם" שמציג את התובנות עד לאותה נקודה.
+        </div>
+        <button class="start-btn" onclick="startQuiz()">מתחילים בסשן</button>
+    </div>
+
+    <!-- מסך שאלות דינמי -->
+    <div id="screen-quiz" class="screen">
+        <div class="progress-bar"><div id="progress" class="progress-fill"></div></div>
+        <div class="progress-text" id="progress-text"></div>
+        <div class="chapter-chip" id="chapter-chip"></div>
+        <h2 id="question-title">טוען שאלה...</h2>
+        <div class="instruction-box">💡 <strong>תרגיל הקשבה:</strong> תן לה לסיים לדבר, שקף את דבריה, ורק אז הקש את התשובה שבחרה.</div>
+        <div id="options-container"></div>
+        <div class="quiz-footer">
+            <button class="back-btn" id="back-btn" onclick="goBack()">→ חזרה לשאלה הקודמת</button>
+            <button class="finish-early-btn" id="finish-early-btn" onclick="showResults()" style="display:none;">⏹ סיום מוקדם והצגת תובנות</button>
+        </div>
+    </div>
+
+    <!-- מסך תוצאות סיכום -->
+    <div id="screen-results" class="screen">
+        <h2>🔑 הפיענוח הפנימי שלה</h2>
+        <p class="description">הנה מה שהתת-מודע והבחירות שלה מול הים מספרים עליה כרגע:</p>
+        <div id="profile-container"></div>
+        <div id="conclusion-container"></div>
+        <details class="details-toggle" open>
+            <summary>📖 הפיענוח המלא — שאלה אחרי שאלה</summary>
+            <div id="results-container"></div>
+        </details>
+        <button class="copy-btn" onclick="copyResults()">📋 העתקת התוצאות (לשמור לעצמך)</button>
+        <button class="restart-btn" onclick="restartQuiz()">לעשות את השאלון שוב</button>
+    </div>
+
+</div>
+
+<script>
+    // type: anchor = עוגן (יציבות וביטחון) | flame = להבה (ריגוש והרפתקה) | depth = מעמקים (עומק ורגש)
+    const chapters = [
+        {
+            name: "פרק 1 · היא מול החיים",
+            emoji: "🌅",
+            questions: [
+                {
+                    title: "המפגש עם הים — תסתכלי רגע על הים. מה הדבר הראשון שאת מרגישה?",
+                    options: [
+                        { text: "א. מרחב אינסופי, חופש ושקט מושלם.", type: "anchor",
+                          interpretation: "<strong>תפיסת החיים:</strong> היא נמצאת בתקופה שהיא מחפשת שקט נפשי, מרחב לנשום וחופש מלחצים יומיומיים.",
+                          followUp: "ממה הכי היית רוצה לנוח בתקופה הזאת?" },
+                        { text: "ב. עוצמה מטורפת, משהו עמוק ומסתורי.", type: "depth",
+                          interpretation: "<strong>תפיסת החיים:</strong> יש לה עולם פנימי עמוק מאוד כרגע. היא מחפשת משמעות ולא מסתפקת בדברים שטחיים.",
+                          followUp: "מה הדבר שהכי מעסיק אותך מבפנים לאחרונה?" },
+                        { text: "ג. תנועה מתמדת, גלים שלא עוצרים, חי ותוסס.", type: "flame",
+                          interpretation: "<strong>תפיסת החיים:</strong> היא מלאת אנרגיה, אוהבת שהדברים זזים ומתפתחים, ומחפשת עשייה ותנועה.",
+                          followUp: "מה הדבר הבא שבא לך להזיז קדימה בחיים?" }
+                    ]
+                },
+                {
+                    title: "הצדף בחול — את מוצאת צדף על החוף. איזה צדף זה, ומה את עושה איתו?",
+                    options: [
+                        { text: "א. צדף קטן, עדין ונסתר בחול שאני לוקחת איתי למזכרת.", type: "depth",
+                          interpretation: "<strong>הערך העצמי:</strong> היא בתקופה מופנמת יותר, אוספת כוחות פנימיים ומעריכה רגעים קטנים ואינטימיים.",
+                          followUp: "מה הרגע הקטן האחרון שעשה לך טוב באמת?" },
+                        { text: "ב. צדף גדול, בולט וצבעוני שאני משאירה על החוף שכולם יראו.", type: "flame",
+                          interpretation: "<strong>הערך העצמי:</strong> היא מרגישה ביטחון, רוצה שיכירו ביכולות שלה ולא מפחדת לתפוס מקום ולהיות במרכז.",
+                          followUp: "באיזה תחום בא לך לבלוט יותר ולא נתת לעצמך עדיין?" },
+                        { text: "ג. צדף מיוחד ומחוספס שאני זורקת בחזרה לתוך המים.", type: "anchor",
+                          interpretation: "<strong>הערך העצמי:</strong> היא במקום של שחרור. היא לא נאחזת בדברים קטנים ומעדיפה לתת לחיים לזרום טבעי.",
+                          followUp: "מה הצלחת לשחרר לאחרונה שפעם היה תוקע אותך?" }
+                    ]
+                },
+                {
+                    title: "האי הבודד באופק — את רואה אי קטן ובודד רחוק באופק. מה עובר לך בראש?",
+                    options: [
+                        { text: "א. איזה כיף, מקום מושלם לברוח אליו לכמה ימים של שקט.", type: "anchor",
+                          interpretation: "<strong>התמודדות עם הלבד:</strong> היא זקוקה לזמן שלה עם עצמה כדי להטעין מצברים, והלבד לא מפחיד אותה — הוא מזין אותה.",
+                          followUp: "מה היית לוקחת איתך לשלושה ימים לבד באי?" },
+                        { text: "ב. נראה קצת מבודד ומלחיץ, עדיף להישאר על החוף עם אנשים.", type: "flame",
+                          interpretation: "<strong>התמודדות עם הלבד:</strong> היא טיפוס מאוד חברתי. הביטחון והשמחה שלה מגיעים מהאנשים שמקיפים אותה וממך.",
+                          followUp: "מי האנשים שהכי ממלאים אותך באנרגיה?" },
+                        { text: "ג. מסקרן, הייתי רוצה לחקור מה יש שם אבל לא להישאר לתמיד.", type: "depth",
+                          interpretation: "<strong>התמודדות עם הלבד:</strong> יש לה איזון בריא. היא אוהבת אנשים, אבל יש לה סקרנות פנימית עמוקה והיא אוהבת לחקור את המחשבות של עצמה.",
+                          followUp: "מה הדבר האחרון שגילית על עצמך והפתיע אותך?" }
+                    ]
+                },
+                {
+                    title: "השמש על הפנים — את שוכבת על החול והשמש מלטפת לך את הפנים. מה המחשבה הראשונה?",
+                    options: [
+                        { text: "א. סוף סוף... מגיע לי לנוח.", type: "anchor",
+                          interpretation: "<strong>מנוחה:</strong> היא נותנת לעצמה מעט מדי מנוחה לאחרונה. הגוף והנפש שלה מבקשים הפסקה — תעזור לה לקחת אחת בלי רגשות אשם.",
+                          followUp: "מתי בפעם האחרונה נחת באמת, בלי להרגיש אשמה?" },
+                        { text: "ב. עוד מעט קמים — יש עוד דברים לעשות היום.", type: "flame",
+                          interpretation: "<strong>מנוחה:</strong> יש לה מנוע פנימי שלא נח. זה כוח אמיתי — אבל שים לב שהיא לא שוכחת ליהנות מהדרך באמצע כל העשייה.",
+                          followUp: "מה יקרה אם תרשי לעצמך יום אחד שלם בלי לעשות כלום?" },
+                        { text: "ג. אני נשארת כאן — רוצה לחרוט את הרגע הזה בזיכרון.", type: "depth",
+                          interpretation: "<strong>מנוחה:</strong> היא אספנית רגעים. היא חיה את החיים דרך הזיכרונות שהיא יוצרת — תייצרו ביחד רגעים ששווה לחרוט.",
+                          followUp: "איזה רגע מהשנה האחרונה היית חורטת בזיכרון לנצח?" }
+                    ]
+                },
+                {
+                    title: "הרוח — פתאום נושבת רוח חזקה מהים. מה היא עושה לך?",
+                    options: [
+                        { text: "א. מצמררת קצת — אני מתכרבלת בתוך המגבת.", type: "anchor",
+                          interpretation: "<strong>יחס לשינויים:</strong> שינויים פתאומיים קצת מערערים אותה. היא מעדיפה להתכונן מראש — תן לה התראות, לא הפתעות מהסוג הלא נעים.",
+                          followUp: "איזה שינוי שקרה לך פתאום דווקא יצא לטובה בסוף?" },
+                        { text: "ב. מעירה אותי — בא לי לקום ולרוץ על קו המים.", type: "flame",
+                          interpretation: "<strong>יחס לשינויים:</strong> שינויים מדליקים אותה. כשמשהו זז — היא מתעוררת. שגרה ארוכה מדי מכבה אותה, אז תדאג לנער את הדברים מדי פעם.",
+                          followUp: "מה השינוי שהכי בא לך לעשות עכשיו בחיים?" },
+                        { text: "ג. מרגישה שהיא מביאה איתה משהו... כמו מסר.", type: "depth",
+                          interpretation: "<strong>יחס לשינויים:</strong> היא קשובה לסימנים מהחיים. יש לה אינטואיציה חזקה — כשהיא אומרת \"יש לי תחושה\", שווה להקשיב.",
+                          followUp: "מתי האינטואיציה שלך צדקה ולא הקשבת לה?" }
+                    ]
+                }
+            ]
+        },
+        {
+            name: "פרק 2 · הקשר ביניכם",
+            emoji: "💛",
+            questions: [
+                {
+                    title: "השחייה במים — את נכנסת למים. איך הם מרגישים לך?",
+                    options: [
+                        { text: "א. מים חמימים, נעימים ומחבקים — בא לי רק לצוף בהם.", type: "anchor",
+                          interpretation: "<strong>אינטימיות וקשר:</strong> בקשר איתך היא מחפשת בעיקר בית, רוך, הגנה ומקום בטוח להניח את הראש.",
+                          followUp: "מתי לאחרונה הרגשת איתי הכי בבית?" },
+                        { text: "ב. מים קרירים ומרעננים — מעוררים את הגוף ונותנים אנרגיה.", type: "flame",
+                          interpretation: "<strong>אינטימיות וקשר:</strong> היא מחפשת בקשר שלכם תשוקה, עניין, הרפתקאות ומישהו שיניע אותה ויצחק איתה.",
+                          followUp: "מה הדבר הכי ספונטני שבא לך שנעשה יחד בחודש הקרוב?" },
+                        { text: "ג. מים עמוקים וגועשים — צריך להחזיק חזק ולהיות מרוכזת.", type: "depth",
+                          interpretation: "<strong>אינטימיות וקשר:</strong> לפעמים קשר ורגשות עמוקים מציפים אותה, והיא צריכה לדעת שאתה שם יציב כמו סלע ומעגן אותה.",
+                          followUp: "מה אני יכול לעשות כשאת מוצפת, שירגיע אותך באמת?" }
+                    ]
+                },
+                {
+                    title: "הרגע הקסום — איזה רגע בים הכי קסום בעינייך?",
+                    options: [
+                        { text: "א. זריחה שקטה, כשאין אף אחד על החוף חוץ מאיתנו.", type: "anchor",
+                          interpretation: "<strong>מה ממלא אותה:</strong> הרגעים הכי יקרים לה הם האינטימיים — רק שניכם, בלי רעש ובלי עולם מסביב. שמור על רגעים כאלה ביומן.",
+                          followUp: "מה הרגע הכי שקט ויפה שהיה לנו יחד עד עכשיו?" },
+                        { text: "ב. שקיעה צבעונית עם מוזיקה ואנשים אהובים מסביב.", type: "flame",
+                          interpretation: "<strong>מה ממלא אותה:</strong> היא נטענת מחוויות משותפות, שמחה ואנשים. תכננו יותר ערבים כאלה — זה החמצן שלה.",
+                          followUp: "איזו חוויה עם חברים בא לך שנארגן יחד?" },
+                        { text: "ג. לילה עם ירח מלא שמשתקף על המים.", type: "depth",
+                          interpretation: "<strong>מה ממלא אותה:</strong> היא רומנטיקנית עם נשמה של מסתורין. היא צריכה קסם בחיים — הפתעות קטנות, רגעים לא צפויים.",
+                          followUp: "מה הדבר הכי רומנטי שמישהו יכול לעשות בשבילך?" }
+                    ]
+                },
+                {
+                    title: "שנינו על החוף — אם היינו נשארים עכשיו על החוף עוד שעה, מה הכי בא לך שנעשה?",
+                    options: [
+                        { text: "א. לשכב יחד בשקט, להתחבק ולהקשיב לגלים בלי לדבר.", type: "anchor",
+                          interpretation: "<strong>החיבור ביניכם:</strong> היא מתחברת אליך דרך נוכחות שקטה. לא צריך תמיד מילים — מגע, חיבוק ושקט משותף עושים לה את זה.",
+                          followUp: "(בלי לשאול — פשוט תחבק אותה עכשיו 🤍)" },
+                        { text: "ב. להיכנס למים, להשתולל, לצחוק ולשכוח מהכל.", type: "flame",
+                          interpretation: "<strong>החיבור ביניכם:</strong> היא מתחברת אליך דרך משחק וצחוק. אל תהיה רציני מדי — הילדות המשותפת שלכם היא הדבק של הקשר.",
+                          followUp: "מתי צחקנו הכי חזק יחד? בואי נשחזר את זה." },
+                        { text: "ג. ללכת לאורך החוף ולדבר על החיים, על הכל.", type: "depth",
+                          interpretation: "<strong>החיבור ביניכם:</strong> היא מתחברת אליך דרך שיחות עומק. הליכות ושיחות ארוכות זה הזמן האיכותי האמיתי שלה — תייצר כאלה יותר.",
+                          followUp: "על מה לא דיברנו כבר הרבה זמן ושווה לדבר?" }
+                    ]
+                },
+                {
+                    title: "ארמון החול — אנחנו בונים יחד ארמון חול ענק. איזה תפקיד את לוקחת על עצמך?",
+                    options: [
+                        { text: "א. בונה את החומות — שיחזיקו חזק מול הגלים.", type: "anchor",
+                          interpretation: "<strong>התפקיד שלה בקשר:</strong> היא השומרת — זו שדואגת שהבסיס של הקשר יחזיק מול כל מה שהחיים זורקים. אל תיקח את זה כמובן מאליו.",
+                          followUp: "מה אני יכול לקחת ממך, כדי שיהיה לך קל יותר?" },
+                        { text: "ב. מוסיפה מגדלים ודגלים — שיהיה הארמון הכי שווה בחוף.", type: "flame",
+                          interpretation: "<strong>התפקיד שלה בקשר:</strong> היא הניצוץ של הקשר — זו שמוסיפה צבע, חגיגה וגאווה. תן לה במה ותגיד לה שאתה רואה את זה.",
+                          followUp: "מה הדבר הכי שווה שהבאת לקשר שלנו, בעינייך?" },
+                        { text: "ג. חופרת את התעלה שמחברת את הארמון לים.", type: "depth",
+                          interpretation: "<strong>התפקיד שלה בקשר:</strong> היא המחברת — זו שדואגת שהקשר יישאר מחובר למשהו עמוק וזורם, לא רק יפה מבחוץ.",
+                          followUp: "מה מחבר אותנו בעינייך יותר מהכל?" }
+                    ]
+                },
+                {
+                    title: "הצילום — אם היינו מצטלמים עכשיו תמונה אחת על החוף, איך היא הייתה נראית?",
+                    options: [
+                        { text: "א. חיבוק רגוע, מסתכלים אחד על השני.", type: "anchor",
+                          interpretation: "<strong>הזוגיות בעיניה:</strong> התמונה הזוגית שלה היא אינטימיות שקטה. הרגעים הקטנים ביניכם שווים לה יותר מכל אירוע גדול.",
+                          followUp: "איזו תמונה אמיתית שלנו את הכי אוהבת, ולמה דווקא היא?" },
+                        { text: "ב. קופצים באוויר, צוחקים, שיער מתעופף ברוח.", type: "flame",
+                          interpretation: "<strong>הזוגיות בעיניה:</strong> התמונה הזוגית שלה היא שמחה. היא רוצה זוגיות שצוחקים בה — שמרו על הילדות שלכם בכל מחיר.",
+                          followUp: "מתי בפעם האחרונה צחקנו עד דמעות?" },
+                        { text: "ג. יושבים צמודים מול השקיעה, בכלל לא מסתכלים למצלמה.", type: "depth",
+                          interpretation: "<strong>הזוגיות בעיניה:</strong> התמונה הזוגית שלה היא שותפות לדרך — שניים שמסתכלים יחד על אותו אופק.",
+                          followUp: "לאן את רוצה שנסתכל יחד בתקופה הקרובה?" }
+                    ]
+                }
+            ]
+        },
+        {
+            name: "פרק 3 · רגש ותקשורת",
+            emoji: "🌊",
+            questions: [
+                {
+                    title: "הסערה — דמייני שמתחילה פתאום סערה בים. מה את עושה?",
+                    options: [
+                        { text: "א. מתרחקת למקום מוגן ומחכה בשקט שהיא תעבור.", type: "anchor",
+                          interpretation: "<strong>התמודדות עם קונפליקטים:</strong> כשיש מתח או ריב, היא צריכה מרחב וזמן לעצמה. אל תרדוף אחריה — תן לה לנשום ותהיה שם כשהיא חוזרת.",
+                          followUp: "כשאנחנו רבים, מה הדבר שהכי עוזר לך להירגע?" },
+                        { text: "ב. נשארת להסתכל — יש משהו מרתק בעוצמה הזאת.", type: "flame",
+                          interpretation: "<strong>התמודדות עם קונפליקטים:</strong> היא לא מפחדת מעימותים. היא מעדיפה לשים הכל על השולחן ולדבר ישר, גם כשזה סוער.",
+                          followUp: "יש משהו שאת מרגישה שעוד לא שמנו על השולחן?" },
+                        { text: "ג. מחפשת מישהו לחוות את זה יחד איתו, יד ביד.", type: "depth",
+                          interpretation: "<strong>התמודדות עם קונפליקטים:</strong> בזמן קושי הכי חשוב לה לדעת שאתם באותו צד. גם בריב — היא צריכה להרגיש שאתה איתה, לא נגדה.",
+                          followUp: "מה גורם לך להרגיש שאנחנו צוות גם כשקשה?" }
+                    ]
+                },
+                {
+                    title: "הבקבוק עם המכתב — גל מביא לרגלייך בקבוק עם מכתב בפנים. מה הכי היית רוצה שיהיה כתוב בו?",
+                    options: [
+                        { text: "א. מילים טובות ממישהו שאוהב אותי, שכתב בדיוק מה אני שווה לו.", type: "depth",
+                          interpretation: "<strong>שפת האהבה שלה:</strong> מילים זה הדלק שלה. מחמאות, הודעות באמצע היום, לומר בקול את מה שאתה מרגיש — זה מה שממלא לה את הלב.",
+                          followUp: "מה המשפט שהכי היית רוצה לשמוע ממני?" },
+                        { text: "ב. מפת אוצר — הרפתקה שמחכה רק לי.", type: "flame",
+                          interpretation: "<strong>שפת האהבה שלה:</strong> היא צריכה משהו לחלום עליו ולרדוף אחריו. מתנה בשבילה זו חוויה, לא חפץ — תכנן לה הפתעות.",
+                          followUp: "אם היינו יוצאים מחר להרפתקה בלי תכנון — לאן?" },
+                        { text: "ג. הבטחה שמישהו תמיד ישמור עליי, לא משנה מה.", type: "anchor",
+                          interpretation: "<strong>שפת האהבה שלה:</strong> ביטחון זה הבסיס של הכל בשבילה. עקביות, אמינות, להיות שם בקטנות — שווים אצלה יותר מכל מחווה גדולה.",
+                          followUp: "מה אני עושה שגורם לך להרגיש הכי בטוחה איתי?" }
+                    ]
+                },
+                {
+                    title: "הצעקה אל הים — אם היית יכולה לצעוק משהו אחד אל הים, בלי שאף אחד ישמע, מה זה היה?",
+                    options: [
+                        { text: "א. תודה — על מה שיש לי בחיים.", type: "anchor",
+                          interpretation: "<strong>הרגש הדומיננטי:</strong> הרגש שמוביל אותה עכשיו הוא הכרת תודה. היא במקום מיושב ושלם — תחגגו את זה ביחד.",
+                          followUp: "על מה את הכי מודה בתקופה הזאת של החיים?" },
+                        { text: "ב. צעקה אחת ארוכה — כל מה שהצטבר בפנים.", type: "depth",
+                          interpretation: "<strong>הרגש הדומיננטי:</strong> יש דברים שהצטברו אצלה בפנים ועוד לא יצאו החוצה. תפתח לה דלת — בלי לחץ, רק הזמנה אמיתית להקשבה.",
+                          followUp: "מה הדבר שהכי בא לך לפרוק ועוד לא יצא לך?" },
+                        { text: "ג. משאלה — משהו שאני ממש רוצה שיקרה.", type: "flame",
+                          interpretation: "<strong>הרגש הדומיננטי:</strong> יש לה משאלה שבוערת בה מבפנים. היא צריכה שותף שיאמין בה בקול רם — תהיה הראשון שאומר לה \"את מסוגלת\".",
+                          followUp: "אם הים היה מגשים לך משאלה אחת עכשיו — מה היא?" }
+                    ]
+                },
+                {
+                    title: "הגל הגדול — גל גדול מתקרב אלייך. שנייה לפני שהוא מגיע, מה את עושה?",
+                    options: [
+                        { text: "א. צוללת מתחתיו בשקט ונותנת לו לעבור מעליי.", type: "anchor",
+                          interpretation: "<strong>איך היא מעבדת רגש:</strong> כשרגש גדול מגיע — היא צוללת מתחתיו בשקט. לפעמים לא תראה עליה שסוער בפנים. שאל אותה לשלומה גם כשנראה שהכל בסדר.",
+                          followUp: "איך אני יכול לדעת שמשהו מציק לך, גם כשאת לא אומרת?" },
+                        { text: "ב. קופצת עליו ורוכבת עליו עד החוף.", type: "flame",
+                          interpretation: "<strong>איך היא מעבדת רגש:</strong> היא הופכת רגשות לאנרגיה. כשקשה לה — היא עושה. רק שים לב שהיא לא בורחת לעשייה במקום להרגיש.",
+                          followUp: "מה את עושה כשמשהו כואב — ומה היית רוצה לעשות במקום?" },
+                        { text: "ג. נותנת לו לסחוף אותי — אוהבת להרגיש הכל בעוצמה.", type: "depth",
+                          interpretation: "<strong>איך היא מעבדת רגש:</strong> היא מרשה לעצמה להרגיש הכל בעוצמה מלאה. זו מתנה — והיא צריכה לידה מישהו שלא נבהל מהעוצמה שלה.",
+                          followUp: "מתי הרגשת שמותר לך להרגיש הכל עד הסוף, בלי להתנצל?" }
+                    ]
+                },
+                {
+                    title: "המוזיקה — שמים לך אוזניות מול הים. איזו מוזיקה מתנגנת?",
+                    options: [
+                        { text: "א. פלייליסט שקט ורגוע שמלטף את הלב.", type: "anchor",
+                          interpretation: "<strong>איך מגיעים אליה:</strong> היא נרגעת דרך שקט ורוך. כשהיא עמוסה — פחות מילים, יותר אווירה רגועה. תלמד לזהות מתי היא צריכה את זה.",
+                          followUp: "איזה שיר מרגיע אותך תמיד, לא משנה מה קורה?" },
+                        { text: "ב. משהו קצבי שבא לרקוד אליו על החול עכשיו.", type: "flame",
+                          interpretation: "<strong>איך מגיעים אליה:</strong> היא מתחברת לרגש דרך תנועה ושמחה. ריקוד ספונטני במטבח שווה אצלה אלף שיחות עומק.",
+                          followUp: "איזה שיר חייב להתנגן במסיבה הכי שמחה של החיים שלנו?" },
+                        { text: "ג. שיר ישן שמחזיר אותי לרגע מסוים בחיים.", type: "depth",
+                          interpretation: "<strong>איך מגיעים אליה:</strong> מוזיקה היא מכונת זמן בשבילה — שירים מחזיקים אצלה זיכרונות שלמים. תגלה איזה שיר מחזיק אתכם.",
+                          followUp: "איזה שיר מחזיר אותך לרגע ספציפי — ולאיזה רגע?" }
+                    ]
+                }
+            ]
+        },
+        {
+            name: "פרק 4 · העבר והשורשים",
+            emoji: "🐚",
+            questions: [
+                {
+                    title: "טביעות הרגליים — את מסתכלת אחורה על טביעות הרגליים שלך בחול. מה את מרגישה?",
+                    options: [
+                        { text: "א. גאווה שקטה — כל צעד בדרך היה שווה את זה.", type: "anchor",
+                          interpretation: "<strong>היחס לעבר:</strong> היא שלמה עם הדרך שעשתה. יש לה שקט פנימי עם העבר — וזה בסיס חזק מאוד לעתיד שלכם.",
+                          followUp: "על איזה צעד בחיים את הכי גאה בעצמך?" },
+                        { text: "ב. וואו, כמה דרך כבר עברתי — ובא לי עוד.", type: "flame",
+                          interpretation: "<strong>היחס לעבר:</strong> היא מסתכלת אחורה רק כדי לקחת תאוצה קדימה. העבר בשבילה הוא הוכחה שהיא מסוגלת לכל דבר.",
+                          followUp: "מה עשית בחיים שפעם חשבת שלא תצליחי לעשות?" },
+                        { text: "ג. חלק מהטביעות כבר נמחקו בגלים... וזה קצת נוגע בי.", type: "depth",
+                          interpretation: "<strong>היחס לעבר:</strong> יש פרקים מהעבר שעוד לא נסגרו אצלה עד הסוף. אל תחפור — אבל תהיה שם, זמין ורך, כשהיא תרצה לדבר.",
+                          followUp: "יש משהו מהעבר שהיית רוצה לסגור סופית?" }
+                    ]
+                },
+                {
+                    title: "הילדה הקטנה — את רואה ילדה קטנה בונה בחול, והיא מזכירה לך את עצמך בתור ילדה. מה היית אומרת לה?",
+                    options: [
+                        { text: "א. הכל יהיה בסדר, אני מבטיחה לך.", type: "anchor",
+                          interpretation: "<strong>הילדה שבה:</strong> בתור ילדה היא הייתה צריכה לשמוע שהכל יהיה בסדר. גם היום — מילה מרגיעה ממך ברגע הנכון שווה לה זהב.",
+                          followUp: "מה היית צריכה לשמוע בתור ילדה ולא שמעת מספיק?" },
+                        { text: "ב. אל תקשיבי לאף אחד שאומר לך שאי אפשר.", type: "flame",
+                          interpretation: "<strong>הילדה שבה:</strong> מישהו פעם הגביל את החלומות שלה. חלק מהאש שלה היום הוא להוכיח שאפשר — תהיה זה שמאמין בה בלי תנאים.",
+                          followUp: "מי האמין בך הכי חזק כשהיית קטנה?" },
+                        { text: "ג. תישארי בדיוק כמו שאת. אל תשתני בשביל אף אחד.", type: "depth",
+                          interpretation: "<strong>הילדה שבה:</strong> היא למדה לאורך הדרך להתאים את עצמה לאחרים. הדבר הכי גדול שתיתן לה: מקום להיות בדיוק מי שהיא, בלי מסכות.",
+                          followUp: "מתי את מרגישה שאת הכי \"את\" — בלי שום מסכה?" }
+                    ]
+                },
+                {
+                    title: "המזכרת מהילדות — אם היית יכולה להביא לחוף הזה דבר אחד מהילדות שלך, מה זה היה?",
+                    options: [
+                        { text: "א. משהו מהבית — שמיכה, ריח, משהו שמרגיש מוגן.", type: "anchor",
+                          interpretation: "<strong>השורשים שלה:</strong> הבית של הילדות הוא העוגן שלה. ביטחון ושייכות הם הצורך הבסיסי שלה — והיא מחפשת לבנות את זה גם איתך.",
+                          followUp: "מה היה הריח או הטעם של הבית שגדלת בו?" },
+                        { text: "ב. האופניים הראשונות שלי — או כל דבר שהרגיש כמו חופש.", type: "flame",
+                          interpretation: "<strong>השורשים שלה:</strong> החופש של הילדות הוא הגעגוע שלה. היא צריכה לשמור על פינה של חופש גם בחיים הבוגרים — תעזור לה לשמור עליה.",
+                          followUp: "מתי בפעם האחרונה הרגשת חופשייה כמו ילדה?" },
+                        { text: "ג. אלבום תמונות ישן של המשפחה.", type: "depth",
+                          interpretation: "<strong>השורשים שלה:</strong> הזיכרונות הם האוצר שלה. היא אדם של שורשים, אנשים וסיפורים — תבקש ממנה לספר לך אותם.",
+                          followUp: "איזו תמונה מאלבום הילדות את הכי אוהבת?" }
+                    ]
+                },
+                {
+                    title: "הסלע בחוף — יש סלע אחד גדול שעומד שם שנים, יציב מול כל הגלים. מי זה \"הסלע\" הזה בחיים שלך?",
+                    options: [
+                        { text: "א. המשפחה שלי — הבסיס של הכל.", type: "anchor",
+                          interpretation: "<strong>עמוד התווך שלה:</strong> המשפחה היא הקרקע שלה. כבד את זה — הדרך אל הלב שלה עוברת גם דרך האנשים שלה.",
+                          followUp: "מה למדת מהמשפחה שלך שאת רוצה לשמור לתמיד?" },
+                        { text: "ב. אני בעצמי — למדתי להיות הסלע של עצמי.", type: "flame",
+                          interpretation: "<strong>עמוד התווך שלה:</strong> היא למדה להיות הסלע של עצמה. עצמאות היא ערך עליון אצלה — אל תנסה \"להציל\" אותה, תעמוד לידה ככתף שווה.",
+                          followUp: "מתי הבנת שאת יכולה לסמוך על עצמך בכל דבר?" },
+                        { text: "ג. אדם אחד מאוד מסוים, שתמיד היה שם בשבילי.", type: "depth",
+                          interpretation: "<strong>עמוד התווך שלה:</strong> יש אדם אחד שהוא עמוד התווך שלה. תכיר את הסיפור הזה לעומק — הוא מפתח להבנת הלב שלה.",
+                          followUp: "מי האדם הזה, ומה הוא נתן לך שאף אחד אחר לא?" }
+                    ]
+                },
+                {
+                    title: "המכתב לעבר — בקבוק ריק נסחף אל החוף. אם היית שולחת בו מכתב לעצמך בעבר — לאיזו תקופה היית שולחת?",
+                    options: [
+                        { text: "א. דווקא לתקופה טובה — רק כדי להגיד תודה.", type: "anchor",
+                          interpretation: "<strong>מבט פנימה:</strong> היא יודעת להוקיר את מה שהיה לה. הכרת תודה היא חלק מהאופי שלה — וזו תכונה נדירה ששווה לומר לה שאתה רואה.",
+                          followUp: "לאיזו תקופה בחיים היית אומרת תודה, ולמה?" },
+                        { text: "ב. לרגע שלפני החלטה גדולה שלקחתי.", type: "flame",
+                          interpretation: "<strong>מבט פנימה:</strong> ההחלטות הגדולות שלה עיצבו אותה. היא אישה של צמתים — והיא אוהבת לבחור בעצמה. תן לה תמיד את ההגה.",
+                          followUp: "מה ההחלטה הכי אמיצה שקיבלת אי פעם?" },
+                        { text: "ג. לתקופה שהייתי צריכה לשמוע שאני מספיקה, בדיוק כמו שאני.", type: "depth",
+                          interpretation: "<strong>מבט פנימה:</strong> יש בה חלק שעוד מחפש אישור שהיא מספיקה. תזכיר לה את זה — לא כשהיא מבקשת, אלא סתם ככה באמצע יום רגיל.",
+                          followUp: "מה היית אומרת היום לעצמך של אז?" }
+                    ]
+                }
+            ]
+        },
+        {
+            name: "פרק 5 · תשוקות וחלומות",
+            emoji: "✨",
+            questions: [
+                {
+                    title: "תיבת האוצר — את צוללת ומוצאת תיבת אוצר על קרקעית הים. מה את הכי מקווה שיש בפנים?",
+                    options: [
+                        { text: "א. מטבעות זהב — ביטחון כלכלי לכל החיים.", type: "anchor",
+                          interpretation: "<strong>החלום הכמוס:</strong> ביטחון כלכלי הוא חלום אמיתי שלה — לא חומרנות, אלא שקט נפשי. דברו על זה בפתיחות, זה חשוב לה יותר ממה שהיא אומרת.",
+                          followUp: "איך נראים חיים \"בטוחים\" בעינייך?" },
+                        { text: "ב. מפה — לאוצר הבא, הגדול עוד יותר.", type: "flame",
+                          interpretation: "<strong>החלום הכמוס:</strong> המסע שווה לה יותר מהאוצר עצמו. היא מכורה לדרך — תוודא שתמיד יש לכם \"מפה הבאה\" משותפת.",
+                          followUp: "מה ההרפתקה הבאה שאת חולמת עליה?" },
+                        { text: "ג. מכתבים ויומנים של מישהו מלפני מאה שנה.", type: "depth",
+                          interpretation: "<strong>החלום הכמוס:</strong> סיפורים של בני אדם מרתקים אותה יותר מזהב. יש בה נשמה של חוקרת לב — היא רואה אנשים לעומק.",
+                          followUp: "את סיפור החיים של מי הכי היית רוצה לקרוא?" }
+                    ]
+                },
+                {
+                    title: "הגלשן — מציעים לך עכשיו, על המקום, שיעור גלישה ראשון בחיים. מה התגובה שלך?",
+                    options: [
+                        { text: "א. אולי בפעם הבאה... אני טובה עם הרגליים על הקרקע.", type: "anchor",
+                          interpretation: "<strong>יציאה מאזור הנוחות:</strong> היא זהירה עם דברים חדשים — וזה בסדר גמור. אל תדחוף; תיצור לה תנאים בטוחים לנסות, והיא תפתיע אותך.",
+                          followUp: "מה היית מנסה אם היה בטוח במאה אחוז שלא תיכשלי?" },
+                        { text: "ב. יאללה, עכשיו! איפה חותמים?", type: "flame",
+                          interpretation: "<strong>יציאה מאזור הנוחות:</strong> היא קופצת למים — תרתי משמע. ההתלהבות שלה היא מתנה; תצטרף אליה במקום לבלום אותה.",
+                          followUp: "מה הדבר הכי ספונטני שעשית אי פעם?" },
+                        { text: "ג. תלוי מי המדריך... אני צריכה לסמוך עליו קודם.", type: "depth",
+                          interpretation: "<strong>יציאה מאזור הנוחות:</strong> היא מנסה דברים חדשים רק עם אנשים שהיא בוטחת בהם. האמון שלה בך הוא המפתח לכל ההרפתקאות שלכם.",
+                          followUp: "מה גורם לך לבטוח במישהו עד הסוף?" }
+                    ]
+                },
+                {
+                    title: "חנות החלומות — יש חנות קטנה על החוף שמוכרת \"חיים אחרים ליום אחד\". איזה חיים את קונה?",
+                    options: [
+                        { text: "א. בית קטן על חוף יווני — שגרה פשוטה, שקטה ויפה.", type: "anchor",
+                          interpretation: "<strong>הפנטזיה שלה:</strong> החלום שלה הוא פשטות. מתחת לכל העומס — היא רוצה חיים שקטים וטובים. זה החזון; תזכור אותו כשאתם בונים תוכניות.",
+                          followUp: "איך נראה היום המושלם בחיים הפשוטים האלה?" },
+                        { text: "ב. כוכבת ליום אחד — במה, קהל, אורות.", type: "flame",
+                          interpretation: "<strong>הפנטזיה שלה:</strong> יש בה כוכבת שמחכה לבמה. תעודד אותה לתפוס מקום — בעבודה, ביצירה, בחיים. היא זוהרת כשרואים אותה.",
+                          followUp: "על איזו במה היית רוצה לעמוד פעם אחת בחיים?" },
+                        { text: "ג. סופרת שכותבת בבקתה קטנה מול הים.", type: "depth",
+                          interpretation: "<strong>הפנטזיה שלה:</strong> יש בה יוצרת. גם אם היא לא קוראת לזה ככה — היא צריכה ערוץ ביטוי משלה. תעזור לה למצוא אותו ולשמור עליו.",
+                          followUp: "אם היית כותבת ספר — על מה הוא היה?" }
+                    ]
+                },
+                {
+                    title: "יום החופש — קיבלת פתאום יום חופש מחר. לבד, בלי מטלות, בלי רגשות אשם. מה את עושה?",
+                    options: [
+                        { text: "א. ספא, ספר טוב, ואפס תוכניות.", type: "anchor",
+                          interpretation: "<strong>איך היא נטענת:</strong> המנוחה שלה היא לבד ובשקט. אל תיעלב כשהיא צריכה זמן לעצמה — זה לא בריחה ממך, זה דלק בשבילה.",
+                          followUp: "כמה זמן לבד את באמת צריכה בשבוע כדי להרגיש מאוזנת?" },
+                        { text: "ב. קופצת לאיזה מקום שעוד לא הייתי בו.", type: "flame",
+                          interpretation: "<strong>איך היא נטענת:</strong> היא נטענת מחוויות חדשות. מתנה מושלמת בשבילה: יום הפתעה ליעד לא ידוע. תרשום את זה.",
+                          followUp: "לאן הכי בא לך לברוח ליום אחד?" },
+                        { text: "ג. קפה ארוך עם מישהי שמזמן לא ראיתי — שיחה אמיתית.", type: "depth",
+                          interpretation: "<strong>איך היא נטענת:</strong> היא נטענת מחיבורים עמוקים. שיחה אמיתית אחת שווה לה יותר מעשרה בילויים רועשים.",
+                          followUp: "עם מי לא דיברת מזמן ובא לך לחדש את הקשר?" }
+                    ]
+                },
+                {
+                    title: "כישרון העל — הים מציע לך כישרון־על אחד למשך שנה. מה את בוחרת?",
+                    options: [
+                        { text: "א. להביא שקט ורוגע לכל מקום שאני נכנסת אליו.", type: "anchor",
+                          interpretation: "<strong>הכוח הפנימי שלה:</strong> היא רוצה להיות מקור של שקט לסביבה שלה. יש לה נתינה טבעית — רק תוודא שמישהו דואג גם לה.",
+                          followUp: "מי דואג לך, כשאת דואגת לכולם?" },
+                        { text: "ב. לדבר כל שפה בעולם — ולטוס לכל מקום.", type: "flame",
+                          interpretation: "<strong>הכוח הפנימי שלה:</strong> העולם קורא לה. שפות, מקומות, תרבויות — יש בה צמא אמיתי לעולם. תתחילו לתכנן את הטיול הבא.",
+                          followUp: "אם היינו טסים מחר לחצי שנה — לאן?" },
+                        { text: "ג. להבין מה אנשים באמת מרגישים, מתחת למילים.", type: "depth",
+                          interpretation: "<strong>הכוח הפנימי שלה:</strong> היא רוצה להבין אנשים לעומק. יש לה רגישות גבוהה למה שקורה מתחת לפני השטח — סמוך על הקריאות שלה.",
+                          followUp: "מה את קולטת על אנשים שאחרים מפספסים?" }
+                    ]
+                }
+            ]
+        },
+        {
+            name: "פרק 6 · העתיד שלכם",
+            emoji: "🛥️",
+            questions: [
+                {
+                    title: "הספינה הרחוקה — את רואה ספינה רחוקה באופק. לאן היא מפליגה?",
+                    options: [
+                        { text: "א. ברוגע לעבר נמל בית מוכר ובטוח.", type: "anchor",
+                          interpretation: "<strong>מבט לעתיד:</strong> השאיפה המרכזית שלה לעתיד כרגע היא יציבות, משפחתיות ובניית בסיס חזק, רגוע ובטוח.",
+                          followUp: "איך נראה ה\"בית\" שאת חולמת עליו בעוד חמש שנים?" },
+                        { text: "ב. במהירות לעבר אי הרפתקאות חדש ולא נודע.", type: "flame",
+                          interpretation: "<strong>מבט לעתיד:</strong> היא חולמת על שינויים, פריצת גבולות, טיולים, למידה ויעדים חדשים שעוד לא כבשה.",
+                          followUp: "מה היעד הראשון ברשימה שלך שעוד לא הספקת?" },
+                        { text: "ג. היא לא ממהרת לשום מקום — עומדת ונהנית מהרגע.", type: "depth",
+                          interpretation: "<strong>מבט לעתיד:</strong> היא למדה לחיות את ה\"כאן ועכשיו\". העתיד הרחוק פחות מעסיק אותה, היא רוצה להפיק את המקסימום מההווה.",
+                          followUp: "מה גרם לך ללמוד להאט וליהנות מהרגע?" }
+                    ]
+                },
+                {
+                    title: "עוד עשר שנים — תעצמי עיניים: אנחנו בעוד עשר שנים, על החוף הזה בדיוק. מה את רואה?",
+                    options: [
+                        { text: "א. יושבים באותו מקום, רגועים, אולי עם ילדים שרצים בחול.", type: "anchor",
+                          interpretation: "<strong>החזון שלה:</strong> משפחה, שורשים, בית. היא בונה לטווח ארוך — איתך. זאת הצהרת כוונות, שים לב אליה.",
+                          followUp: "איך נראה בוקר שבת אצלנו בעוד עשר שנים?" },
+                        { text: "ב. נחתנו כאן רגע בין טיול אחד להרפתקה הבאה.", type: "flame",
+                          interpretation: "<strong>החזון שלה:</strong> חיים של תנועה. זוגיות בשבילה היא שותפות להרפתקאות — תדאג שהעוגן שלכם לא יהפוך לכבד מדי.",
+                          followUp: "איזה טיול חייב לקרות לנו בחמש השנים הקרובות?" },
+                        { text: "ג. בדיוק כמו עכשיו — העיקר שאנחנו עדיין מדברים ככה.", type: "depth",
+                          interpretation: "<strong>החזון שלה:</strong> שתישארו קרובים באמת. היא לא מפחדת מהזמן שעובר — היא מפחדת מהתרחקות. השיחות שלכם הן הבית שלה.",
+                          followUp: "מה נשבע לשמור שלא ילך לאיבוד עם השנים?" }
+                    ]
+                },
+                {
+                    title: "ההבטחה בסלע — אם היינו חורטים עכשיו הבטחה אחת בסלע שעל החוף, מה היית רוצה שיהיה כתוב בה?",
+                    options: [
+                        { text: "א. שתמיד נהיה הבית אחד של השני.", type: "anchor",
+                          interpretation: "<strong>ההבטחה שהיא צריכה:</strong> שתמיד תהיו הבית אחד של השני. ביטחון בקשר חשוב לה יותר מכל ריגוש — תגיד לה את זה במילים.",
+                          followUp: "מה גורם לך להרגיש הכי בטוחה בנו?" },
+                        { text: "ב. שלעולם לא נהפוך לזוג משעמם.", type: "flame",
+                          interpretation: "<strong>ההבטחה שהיא צריכה:</strong> שלא תהפכו לזוג שחי על אוטומט. השעמום מפחיד אותה יותר ממשברים — קח את זה ברצינות.",
+                          followUp: "מה נעשה ביום שנרגיש שנהיינו \"זוג משעמם\"?" },
+                        { text: "ג. שתמיד נגיד אחד לשני את האמת, גם כשקשה.", type: "depth",
+                          interpretation: "<strong>ההבטחה שהיא צריכה:</strong> אמת. גם כשקשה, גם כשלא נעים. כנות היא תנאי הבסיס שלה לאהבה אמיתית.",
+                          followUp: "יש אמת קטנה שעוד לא אמרנו אחד לשני?" }
+                    ]
+                },
+                {
+                    title: "המגדלור — רואים מרחוק מגדלור מהבהב. מה התפקיד שלו בקשר שלנו, בעינייך?",
+                    options: [
+                        { text: "א. שתמיד נדע את הדרך הביתה אחד לשני.", type: "anchor",
+                          interpretation: "<strong>מה מחזיק אתכם:</strong> היא מחפשת נקודת בית קבועה — שלא משנה מה יקרה, תמיד יודעים את הדרך חזרה אחד לשני.",
+                          followUp: "מה \"הדרך הביתה\" שלנו אחרי ריב או תקופה קשה?" },
+                        { text: "ב. שיאיר לנו מקומות חדשים לחקור ביחד.", type: "flame",
+                          interpretation: "<strong>מה מחזיק אתכם:</strong> היא רוצה שהקשר יאיר לה מקומות חדשים — שתהיו זרקור אחד בשביל השני, לא רק נמל עגינה.",
+                          followUp: "לאיזה מקום חדש בחיים אני יכול להאיר לך?" },
+                        { text: "ג. שיהיה אור גם בלילות הכי חשוכים.", type: "depth",
+                          interpretation: "<strong>מה מחזיק אתכם:</strong> היא צריכה לדעת שיהיה אור גם בחושך — שאתה נשאר גם כשקשה. נוכחות בזמנים רעים היא המבחן האמיתי בעיניה.",
+                          followUp: "מה הכי עזר לך בתקופה הקשה האחרונה שלך?" }
+                    ]
+                },
+                {
+                    title: "המתנה מהים — לפני שעוזבים, הים רוצה לתת לך מתנה אחת לקחת הביתה. מה את בוחרת?",
+                    options: [
+                        { text: "א. את השקט הזה — שאוכל לשלוף אותו בכל רגע עמוס.", type: "anchor",
+                          interpretation: "<strong>מה היא צריכה ממך עכשיו:</strong> היא עמוסה ומחפשת רוגע. תהיה האי השקט שלה — פחות פתרונות, יותר נוכחות מרגיעה.",
+                          followUp: "מה הכי מעמיס עלייך עכשיו, ואיך אני יכול להקל?" },
+                        { text: "ב. אומץ — לעשות את הדבר שאני דוחה כבר הרבה זמן.", type: "flame",
+                          interpretation: "<strong>מה היא צריכה ממך עכשיו:</strong> יש משהו שהיא רוצה לעשות ולא מעיזה. היא צריכה אותך כרוח גבית — תאמין בה בקול רם.",
+                          followUp: "מה הדבר שאת דוחה? ספרי לי — אני איתך בזה." },
+                        { text: "ג. עוד זמן — שהיום הזה פשוט לא ייגמר.", type: "depth",
+                          interpretation: "<strong>מה היא צריכה ממך עכשיו:</strong> היא במקום טוב איתך ממש עכשיו. אל תחפש לתקן כלום — פשוט תייצר עוד רגעים כאלה.",
+                          followUp: "(תגיד לה: גם לי בא שהיום הזה לא ייגמר 🤍)" }
+                    ]
+                }
+            ]
+        }
+    ];
+
+    // שטוח: כל השאלות ברצף, עם הפניה לפרק שלהן
+    const questions = [];
+    chapters.forEach((ch, chIdx) => {
+        ch.questions.forEach(q => {
+            questions.push({ ...q, chapterIndex: chIdx });
+        });
+    });
+
+    const profiles = {
+        anchor: {
+            name: "🌅 העוגן",
+            text: "הבחירות שלה מספרות שהיא מחפשת עכשיו בעיקר <strong>שקט, ביטחון ויציבות</strong>. הדרך ללב שלה: נוכחות עקבית, מגע, רגעים שקטים של שניכם. אל תנסה להרשים אותה בגדול — תפתיע אותה דווקא בקטן ובאמין."
+        },
+        flame: {
+            name: "🔥 הלהבה",
+            text: "הבחירות שלה מספרות שהיא מחפשת עכשיו בעיקר <strong>ריגוש, תנועה וצחוק</strong>. הדרך ללב שלה: ספונטניות, חוויות חדשות, משחקיות. האויב הכי גדול של הקשר מבחינתה הוא שגרה — תדאג שתמיד יהיה משהו לצפות לו."
+        },
+        depth: {
+            name: "🌊 המעמקים",
+            text: "הבחירות שלה מספרות שהיא מחפשת עכשיו בעיקר <strong>עומק, משמעות וחיבור רגשי</strong>. הדרך ללב שלה: שיחות אמיתיות, מילים מהלב, הקשבה בלי למהר לפתור. כשהיא משתפת — היא לא מחפשת פתרון, היא מחפשת אותך."
+        }
+    };
+
+    const profileLabels = { anchor: "🌅 עוגן", flame: "🔥 להבה", depth: "🌊 מעמקים" };
+
+    // תובנת פרק לפי הטיפוס הדומיננטי באותו פרק
+    const chapterInsights = [
+        {
+            anchor: "מול החיים היא מחפשת כרגע שקט ויציבות — פחות רעש, יותר אוויר לנשימה.",
+            flame: "מול החיים היא במצב של תנועה — אנרגיה, עשייה ורצון להתקדם.",
+            depth: "מול החיים היא במסע פנימי — מחפשת משמעות ולא מסתפקת בשטחי."
+        },
+        {
+            anchor: "בקשר איתך היא מחפשת בית — ביטחון, רוך ונוכחות יציבה.",
+            flame: "בקשר איתך היא מחפשת ניצוץ — צחוק, משחק והפתעות.",
+            depth: "בקשר איתך היא מחפשת עומק — שיחות אמיתיות וחיבור נשמתי."
+        },
+        {
+            anchor: "ברגש היא מעבדת דברים בשקט — תן לה מרחב והיא תבוא אליך.",
+            flame: "ברגש היא ישירה וסוערת — היא מעדיפה לשים הכל על השולחן.",
+            depth: "ברגש היא מרגישה הכל בעוצמה — היא צריכה הקשבה, לא פתרונות."
+        },
+        {
+            anchor: "מהעבר שלה היא לוקחת את הביטחון של הבית — המשפחה והשורשים חשובים לה.",
+            flame: "מהעבר שלה היא לוקחת דלק — היא בנתה את עצמה והיא גאה בדרך.",
+            depth: "בעבר שלה יש רגעים שעוד מדברים אליה — שווה לשאול ולהקשיב."
+        },
+        {
+            anchor: "החלומות שלה פשוטים ועמוקים — שקט, פשטות וחיים טובים.",
+            flame: "החלומות שלה גדולים — במות, מקומות חדשים ודברים שעוד לא העזה.",
+            depth: "החלומות שלה רגשיים — חיבורים אמיתיים, יצירה ומשמעות."
+        },
+        {
+            anchor: "את העתיד שלכם היא רואה כבית — יציב, משפחתי ובטוח.",
+            flame: "את העתיד שלכם היא רואה כהרפתקה — העיקר שלא תעצרו לעולם.",
+            depth: "את העתיד שלכם היא מודדת בעומק — שתמיד תישארו אמיתיים אחד עם השני."
+        }
+    ];
+
+    const finalAdvice = {
+        anchor: "השורה התחתונה: הדרך ללב שלה עוברת דרך ביטחון. תהיה עקבי, תהיה שם בקטנות, ותפתיע אותה דווקא ברגעים השקטים.",
+        flame: "השורה התחתונה: הדרך ללב שלה עוברת דרך ריגוש. אל תיתן לשגרה לנצח — תדאג שתמיד יהיה לכם משהו לצפות לו.",
+        depth: "השורה התחתונה: הדרך ללב שלה עוברת דרך הלב. דבר איתה אמת, הקשב עד הסוף, ואל תמהר לפתור."
+    };
+
+    let currentQuestionIndex = 0;
+    let answers = []; // { questionIndex, option }
+
+    function showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+        window.scrollTo(0, 0);
+    }
+
+    function startQuiz() {
+        currentQuestionIndex = 0;
+        answers = [];
+        showQuestion();
+        showScreen('screen-quiz');
+    }
+
+    function showQuestion() {
+        const q = questions[currentQuestionIndex];
+        const ch = chapters[q.chapterIndex];
+
+        document.getElementById('chapter-chip').innerText = ch.emoji + ' ' + ch.name;
+        document.getElementById('question-title').innerText = (currentQuestionIndex + 1) + '. ' + q.title;
+        document.getElementById('progress-text').innerText = 'שאלה ' + (currentQuestionIndex + 1) + ' מתוך ' + questions.length;
+        document.getElementById('back-btn').style.display = currentQuestionIndex > 0 ? 'block' : 'none';
+        document.getElementById('finish-early-btn').style.display = answers.length >= 10 ? 'block' : 'none';
+
+        const progressPercent = (currentQuestionIndex / questions.length) * 100;
+        document.getElementById('progress').style.width = progressPercent + '%';
+
+        const optionsContainer = document.getElementById('options-container');
+        optionsContainer.innerHTML = '';
+
+        q.options.forEach((opt) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt.text;
+            btn.onclick = () => selectOption(opt);
+            optionsContainer.appendChild(btn);
+        });
+        window.scrollTo(0, 0);
+    }
+
+    function selectOption(option) {
+        answers.push({ questionIndex: currentQuestionIndex, option });
+        currentQuestionIndex++;
+
+        if (currentQuestionIndex < questions.length) {
+            showQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    function goBack() {
+        if (currentQuestionIndex === 0) return;
+        currentQuestionIndex--;
+        answers.pop();
+        showQuestion();
+    }
+
+    function countTypes(answerList) {
+        const counts = { anchor: 0, flame: 0, depth: 0 };
+        answerList.forEach(a => counts[a.option.type]++);
+        return counts;
+    }
+
+    function dominantType(counts) {
+        let best = 'anchor';
+        ['anchor', 'flame', 'depth'].forEach(k => { if (counts[k] > counts[best]) best = k; });
+        return best;
+    }
+
+    function buildDistributionHTML(counts, total) {
+        let html = '<div style="margin-top:16px;">';
+        ['anchor', 'flame', 'depth'].forEach(k => {
+            const pct = total ? Math.round((counts[k] / total) * 100) : 0;
+            html += '<div class="dist-row">' +
+                '<div class="dist-label">' + profileLabels[k] + '</div>' +
+                '<div class="dist-track"><div class="dist-fill" style="width:' + pct + '%"></div></div>' +
+                '<div class="dist-pct">' + pct + '%</div>' +
+                '</div>';
+        });
+        return html + '</div>';
+    }
+
+    function showResults() {
+        document.getElementById('progress').style.width = '100%';
+
+        const counts = countTypes(answers);
+        const overall = dominantType(counts);
+        const profile = profiles[overall];
+
+        document.getElementById('profile-container').innerHTML =
+            '<div class="profile-box"><h3>הפרופיל שלה: ' + profile.name + '</h3><div>' + profile.text + '</div>' +
+            buildDistributionHTML(counts, answers.length) + '</div>';
+
+        // תובנות לפי פרק + מסקנה סופית
+        let insightsHTML = '<div class="conclusion-box"><h3>🧭 התובנות — פרק אחרי פרק</h3><ul>';
+        chapters.forEach((ch, chIdx) => {
+            const chAnswers = answers.filter(a => questions[a.questionIndex].chapterIndex === chIdx);
+            if (chAnswers.length === 0) return;
+            const chDominant = dominantType(countTypes(chAnswers));
+            insightsHTML += '<li><strong>' + ch.emoji + ' ' + ch.name.split('·')[1].trim() + ':</strong> ' +
+                chapterInsights[chIdx][chDominant] + '</li>';
+        });
+        insightsHTML += '</ul><div class="conclusion-final"><strong>💛 המסקנה הסופית:</strong> ' +
+            finalAdvice[overall] + '</div></div>';
+        document.getElementById('conclusion-container').innerHTML = insightsHTML;
+
+        // פירוט מלא לפי פרקים
+        const resultsContainer = document.getElementById('results-container');
+        resultsContainer.innerHTML = '';
+
+        chapters.forEach((ch, chIdx) => {
+            const chAnswers = answers.filter(a => questions[a.questionIndex].chapterIndex === chIdx);
+            if (chAnswers.length === 0) return;
+
+            const header = document.createElement('div');
+            header.className = 'chapter-header-results';
+            header.innerText = ch.emoji + ' ' + ch.name;
+            resultsContainer.appendChild(header);
+
+            chAnswers.forEach(a => {
+                const div = document.createElement('div');
+                div.className = 'result-item';
+                div.innerHTML =
+                    '<div class="result-title">שאלה ' + (a.questionIndex + 1) + '</div>' +
+                    '<div class="result-choice">היא בחרה: ' + a.option.text + '</div>' +
+                    '<div>' + a.option.interpretation + '</div>' +
+                    '<div class="followup"><strong>💬 שאלת עומק להמשך:</strong> ' + a.option.followUp + '</div>';
+                resultsContainer.appendChild(div);
+            });
+        });
+
+        showScreen('screen-results');
+    }
+
+    function copyResults() {
+        const counts = countTypes(answers);
+        const overall = dominantType(counts);
+        const profile = profiles[overall];
+        const strip = s => s.replace(/<[^>]+>/g, '');
+
+        let text = '🌊 הפיענוח שלה מול הגלים\n\nהפרופיל: ' + profile.name + '\n' + strip(profile.text) + '\n\n🧭 תובנות לפי פרקים:\n';
+        chapters.forEach((ch, chIdx) => {
+            const chAnswers = answers.filter(a => questions[a.questionIndex].chapterIndex === chIdx);
+            if (chAnswers.length === 0) return;
+            const chDominant = dominantType(countTypes(chAnswers));
+            text += '• ' + ch.name + ': ' + chapterInsights[chIdx][chDominant] + '\n';
+        });
+        text += '\n💛 המסקנה הסופית: ' + finalAdvice[overall] + '\n\n📖 פירוט מלא:\n\n';
+        answers.forEach(a => {
+            text += 'שאלה ' + (a.questionIndex + 1) + ': ' + a.option.text + '\n' +
+                strip(a.option.interpretation) + '\n' +
+                'שאלת עומק: ' + a.option.followUp + '\n\n';
+        });
+        navigator.clipboard.writeText(text).then(() => {
+            alert('התוצאות הועתקו! אפשר להדביק בפתקים או בווטסאפ לעצמך.');
+        });
+    }
+
+    function restartQuiz() {
+        showScreen('screen-welcome');
+    }
+</script>
+
+</body>
+</html>
