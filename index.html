@@ -6,689 +6,629 @@
     <title>מבנה האישיות שלה — מול הגלים</title>
     <style>
         :root {
-            --bg-color: #0b0f19;
-            --card-bg: #151d30;
-            --card-soft: #1a2440;
-            --text-main: #ffffff;
-            --text-muted: #a0aec0;
-            --accent: #d4af37;
-            --accent-hover: #f3cf65;
-            --accent-soft: rgba(212, 175, 55, 0.12);
-            --line: rgba(212, 175, 55, 0.22);
+            --bg: #0b0f19;
+            --card: #151d30;
+            --card2: #1a2440;
+            --text: #ffffff;
+            --muted: #8fa3c0;
+            --gold: #d4af37;
+            --goldf: #f3cf65;
+            --goldsoft: rgba(212,175,55,0.12);
+            --goldline: rgba(212,175,55,0.22);
         }
-
         * { box-sizing: border-box; }
-
         body {
             font-family: system-ui, -apple-system, sans-serif;
             background:
-                radial-gradient(ellipse at 50% -20%, #1b2a4a 0%, transparent 55%),
-                linear-gradient(180deg, #0b0f19 0%, #0d1424 55%, #0a1828 100%);
-            color: var(--text-main);
+                radial-gradient(ellipse at 50% -10%, #1b2a4a 0%, transparent 60%),
+                linear-gradient(180deg, #0b0f19 0%, #0d1424 60%, #0a1828 100%);
+            color: var(--text);
             margin: 0;
             padding: 16px;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            min-height: 100vh;
         }
-
-        .quiz-container {
-            background-color: var(--card-bg);
-            padding: 28px 22px;
-            border-radius: 20px;
-            box-shadow: 0 12px 44px rgba(0,0,0,0.55);
+        .wrap {
             max-width: 560px;
             width: 100%;
-            border: 1px solid var(--line);
             margin-top: 8px;
         }
-
+        .card {
+            background: var(--card);
+            border: 1px solid var(--goldline);
+            border-radius: 20px;
+            padding: 26px 22px;
+            box-shadow: 0 12px 48px rgba(0,0,0,0.55);
+        }
         .screen { display: none; }
-        .screen.active { display: block; animation: fadeIn 0.4s ease; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to   { opacity: 1; transform: translateY(0); }
+        .screen.active { display: block; animation: up .38s ease; }
+        @keyframes up {
+            from { opacity:0; transform:translateY(10px); }
+            to   { opacity:1; transform:translateY(0); }
         }
 
-        h2 {
-            color: var(--accent);
-            margin-top: 0;
-            font-size: 22px;
-            line-height: 1.45;
-        }
-
-        .title-divider {
+        /* ─── Typography ─── */
+        h2 { color: var(--gold); margin-top:0; font-size:22px; line-height:1.45; }
+        .divider {
             height: 1px;
-            background: linear-gradient(90deg, var(--accent), transparent);
-            margin: 12px 0 16px;
-            opacity: 0.5;
+            background: linear-gradient(90deg, var(--gold), transparent);
+            opacity: .45;
+            margin: 10px 0 18px;
         }
+        p.sub { color: var(--muted); font-size:15.5px; line-height:1.65; }
 
-        p.description { color: var(--text-muted); font-size: 16px; line-height: 1.65; }
-
-        .instruction-box {
-            background-color: var(--accent-soft);
-            border-right: 3px solid var(--accent);
-            padding: 12px 14px;
-            margin: 18px 0;
-            border-radius: 8px;
-            font-size: 14px;
-            color: #e2e8f0;
-            line-height: 1.7;
-        }
-
+        /* ─── Welcome pillars ─── */
         .pillars {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            gap: 9px;
             margin: 18px 0;
         }
         .pillar {
-            background-color: rgba(255,255,255,0.04);
+            background: rgba(255,255,255,0.04);
             border: 1px solid rgba(255,255,255,0.08);
             border-radius: 12px;
             padding: 12px;
-            font-size: 13px;
-            color: var(--text-muted);
-            line-height: 1.5;
+            font-size:13px;
+            color: var(--muted);
+            line-height:1.5;
         }
-        .pillar strong { color: var(--text-main); display: block; margin-bottom: 3px; font-size: 14px; }
-
-        /* === שאלות === */
-        .progress-dots {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 18px;
-        }
-        .dot {
-            flex: 1;
-            height: 5px;
-            border-radius: 3px;
-            background-color: rgba(255,255,255,0.1);
-            transition: background-color 0.3s;
-        }
-        .dot.done { background: linear-gradient(90deg, var(--accent), #f3cf65); }
-
-        .progress-text { color: var(--text-muted); font-size: 13px; margin-bottom: 14px; }
-
-        .option-btn {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            background-color: rgba(255,255,255,0.045);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: var(--text-main);
-            width: 100%;
-            padding: 14px;
-            margin-bottom: 12px;
-            border-radius: 12px;
-            cursor: pointer;
-            text-align: right;
-            font-size: 16px;
-            line-height: 1.55;
-            transition: all 0.18s ease;
-        }
-        .option-btn .letter {
-            flex-shrink: 0;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            border: 1px solid var(--accent);
-            color: var(--accent);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            font-weight: bold;
-            margin-top: 1px;
-        }
-        .option-btn:hover {
-            background-color: var(--accent-soft);
-            border-color: var(--accent);
-            transform: translateX(-3px);
-        }
-        .option-btn.chosen {
-            background-color: rgba(212, 175, 55, 0.25);
-            border-color: var(--accent);
-        }
-
-        .start-btn, .restart-btn, .copy-btn {
-            background: linear-gradient(135deg, var(--accent), #c9a02e);
-            color: #000;
-            border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 12px;
-            cursor: pointer;
-            width: 100%;
-            transition: filter 0.2s, transform 0.1s;
-            margin-top: 18px;
-        }
-        .start-btn:hover, .restart-btn:hover { filter: brightness(1.15); }
-        .start-btn:active, .restart-btn:active { transform: scale(0.99); }
-
-        .copy-btn {
-            background: transparent;
-            color: var(--accent);
-            border: 1px solid var(--accent);
-            font-size: 15px;
-            padding: 12px;
-            margin-top: 10px;
-        }
-        .copy-btn:hover { background-color: var(--accent-soft); }
-
-        .back-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            font-size: 14px;
-            padding: 8px 0;
-            margin-top: 4px;
-        }
-        .back-btn:hover { color: var(--accent); }
-
-        /* === תוצאות === */
-        .archetype-card {
-            background: linear-gradient(150deg, rgba(212,175,55,0.2), rgba(212,175,55,0.04));
-            border: 1px solid var(--accent);
-            border-radius: 16px;
-            padding: 24px 20px;
-            margin: 20px 0;
-            text-align: center;
-            line-height: 1.75;
-        }
-        .archetype-emoji { font-size: 52px; line-height: 1; }
-        .archetype-name {
-            color: var(--accent);
-            font-size: 26px;
-            font-weight: bold;
-            margin: 10px 0 4px;
-        }
-        .archetype-sub { color: var(--text-muted); font-size: 14px; margin-bottom: 14px; }
-        .archetype-text { text-align: right; font-size: 15.5px; }
-        .archetype-energy {
-            text-align: right;
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px dashed var(--line);
+        .pillar strong { color: var(--text); display:block; margin-bottom:3px; font-size:14px; }
+        .note {
+            background: var(--goldsoft);
+            border-right: 3px solid var(--gold);
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size:14px;
             color: #e2e8f0;
-            font-size: 14.5px;
+            line-height:1.7;
+            margin: 18px 0;
         }
 
-        .section-title {
-            color: var(--accent);
-            font-size: 18px;
-            font-weight: bold;
-            margin: 26px 0 6px;
+        /* ─── Quiz ─── */
+        .dots { display:flex; gap:5px; margin-bottom:16px; }
+        .dot  { flex:1; height:5px; border-radius:3px; background:rgba(255,255,255,0.1); transition:.3s; }
+        .dot.done { background: linear-gradient(90deg, var(--gold), var(--goldf)); }
+        .qtop  { color: var(--muted); font-size:13px; margin-bottom:12px; }
+        .opt   {
+            display:flex; align-items:flex-start; gap:12px;
+            background: rgba(255,255,255,0.045);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text);
+            width:100%; padding:14px; margin-bottom:11px;
+            border-radius:12px; cursor:pointer;
+            text-align:right; font-size:16px; line-height:1.55;
+            transition: all .17s ease;
         }
-        .section-sub { color: var(--text-muted); font-size: 13.5px; margin-bottom: 16px; line-height: 1.5; }
+        .opt .l {
+            flex-shrink:0; width:28px; height:28px; border-radius:50%;
+            border:1px solid var(--gold); color:var(--gold);
+            display:flex; align-items:center; justify-content:center;
+            font-size:14px; font-weight:bold; margin-top:1px;
+        }
+        .opt:hover  { background:var(--goldsoft); border-color:var(--gold); transform:translateX(-3px); }
+        .opt.picked { background:rgba(212,175,55,.22); border-color:var(--gold); }
 
-        .axis-block {
-            background-color: var(--card-soft);
-            border: 1px solid rgba(255,255,255,0.07);
-            border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 14px;
+        .start-btn, .again-btn, .copy-btn {
+            background: linear-gradient(135deg, var(--gold), #c9a02e);
+            color:#000; border:none;
+            padding:15px 30px; font-size:18px; font-weight:bold;
+            border-radius:12px; cursor:pointer;
+            width:100%; margin-top:18px;
+            transition: filter .2s, transform .1s;
         }
-        .axis-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
+        .start-btn:hover, .again-btn:hover { filter: brightness(1.14); }
+        .start-btn:active, .again-btn:active { transform: scale(.99); }
+        .copy-btn { background:transparent; color:var(--gold); border:1px solid var(--gold); font-size:15px; padding:12px; }
+        .copy-btn:hover { background:var(--goldsoft); }
+        .back-btn { background:none; border:none; color:var(--muted); cursor:pointer; font-size:14px; padding:8px 0; margin-top:4px; display:block; }
+        .back-btn:hover { color:var(--gold); }
+
+        /* ─── Results ─── */
+        .arch-card {
+            background: linear-gradient(150deg, rgba(212,175,55,.2), rgba(212,175,55,.04));
+            border:1px solid var(--gold);
+            border-radius:18px;
+            padding:26px 20px;
+            margin: 20px 0;
+            text-align:center;
+            line-height:1.75;
         }
-        .axis-name { font-weight: bold; font-size: 15px; }
-        .axis-strength {
-            font-size: 12px;
-            color: var(--accent);
-            background-color: var(--accent-soft);
-            border: 1px solid var(--line);
-            padding: 3px 10px;
-            border-radius: 999px;
+        .arch-emoji { font-size:54px; line-height:1; }
+        .arch-name  { color:var(--gold); font-size:27px; font-weight:bold; margin:10px 0 3px; }
+        .arch-sub   { color:var(--muted); font-size:13px; margin-bottom:14px; }
+        .arch-text  { text-align:right; font-size:15.5px; line-height:1.75; }
+        .arch-needs {
+            text-align:right;
+            margin-top:14px; padding-top:14px;
+            border-top:1px dashed var(--goldline);
+            font-size:15px; line-height:1.7;
+            color:#e2e8f0;
         }
-        .axis-poles {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12.5px;
-            color: var(--text-muted);
-            margin-bottom: 6px;
+        .arch-rel {
+            text-align:right;
+            margin-top:12px; padding-top:12px;
+            border-top:1px dashed var(--goldline);
+            font-size:14px; line-height:1.65;
+            color:#b8c8e0;
         }
-        .axis-poles .active-pole { color: var(--accent); font-weight: bold; }
-        .axis-track {
-            position: relative;
-            height: 10px;
-            background: linear-gradient(90deg, rgba(212,175,55,0.35), rgba(255,255,255,0.07));
-            border-radius: 5px;
-            margin-bottom: 12px;
+
+        .stress-card {
+            background: rgba(212,175,55,0.07);
+            border:1px solid rgba(212,175,55,0.3);
+            border-radius:14px;
+            padding:18px 18px;
+            margin:0 0 6px;
+            line-height:1.75;
         }
-        .axis-marker {
-            position: absolute;
-            top: 50%;
-            transform: translate(50%, -50%);
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background-color: var(--accent);
-            border: 3px solid var(--card-bg);
-            box-shadow: 0 0 8px rgba(212,175,55,0.6);
+        .stress-card h4 { margin:0 0 8px; color:var(--gold); font-size:16px; }
+        .stress-card p  { margin:0; font-size:14.5px; color:#d8e4f0; }
+
+        .shadow-card {
+            background: rgba(255,255,255,0.03);
+            border:1px solid rgba(255,255,255,0.07);
+            border-radius:12px;
+            padding:14px 16px;
+            margin-bottom:6px;
+            font-size:14px;
+            color:var(--muted);
+            line-height:1.65;
         }
-        .axis-insight { font-size: 14.5px; line-height: 1.7; color: #e6ecf5; }
-        .axis-insight .foryou { color: var(--accent); font-weight: bold; }
+        .shadow-card span { color:var(--text); }
+
+        .sec-title { color:var(--gold); font-size:18px; font-weight:bold; margin:26px 0 5px; }
+        .sec-sub   { color:var(--muted); font-size:13.5px; margin-bottom:15px; line-height:1.5; }
+
+        .ax-block {
+            background:var(--card2);
+            border:1px solid rgba(255,255,255,0.07);
+            border-radius:14px;
+            padding:16px;
+            margin-bottom:13px;
+        }
+        .ax-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+        .ax-name { font-weight:bold; font-size:15px; }
+        .ax-tag  { font-size:12px; color:var(--gold); background:var(--goldsoft); border:1px solid var(--goldline); padding:3px 10px; border-radius:999px; }
+        .ax-poles { display:flex; justify-content:space-between; font-size:12.5px; color:var(--muted); margin-bottom:6px; }
+        .ax-poles .live { color:var(--gold); font-weight:bold; }
+        .ax-track {
+            position:relative; height:10px;
+            background: linear-gradient(90deg, rgba(212,175,55,.35), rgba(255,255,255,.07));
+            border-radius:5px; margin-bottom:13px;
+        }
+        .ax-pin {
+            position:absolute; top:50%; transform:translate(50%,-50%);
+            width:20px; height:20px; border-radius:50%;
+            background:var(--gold); border:3px solid var(--card);
+            box-shadow:0 0 8px rgba(212,175,55,.65);
+        }
+        .ax-insight { font-size:14.5px; line-height:1.72; color:#e0eaf8; }
+        .fy { color:var(--gold); font-weight:bold; }
 
         .deep-box {
-            background-color: rgba(255,255,255,0.04);
-            border: 1px solid var(--line);
-            border-radius: 14px;
-            padding: 18px;
-            margin: 20px 0;
-            line-height: 1.8;
+            background:rgba(255,255,255,0.04);
+            border:1px solid var(--goldline);
+            border-radius:14px;
+            padding:18px; margin:22px 0;
+            line-height:1.8;
         }
-        .deep-box h3 { margin: 0 0 8px; color: var(--accent); font-size: 17px; }
-        .deep-box ol { padding-right: 20px; margin: 8px 0 0; }
-        .deep-box li { margin-bottom: 8px; font-size: 15px; }
+        .deep-box h3 { margin:0 0 8px; color:var(--gold); font-size:17px; }
+        .deep-box p  { margin:0 0 10px; font-size:14px; color:var(--muted); }
+        .deep-box ol { padding-right:20px; margin:0; }
+        .deep-box li { margin-bottom:9px; font-size:15px; }
     </style>
 </head>
 <body>
+<div class="wrap">
+<div class="card">
 
-<div class="quiz-container">
-
-    <!-- מסך פתיחה -->
-    <div id="screen-welcome" class="screen active">
-        <h2>🌊 מבנה האישיות שלה — מול הגלים</h2>
-        <div class="title-divider"></div>
-        <p class="description">12 שאלות קצרות שממפות את האישיות שלה על 4 צירים פסיכולוגיים — ובסוף: הטיפוס שלה, מבנה האישיות המלא, ומדריך אישי בשבילך.</p>
+    <!-- ─── Welcome ─── -->
+    <div id="s-welcome" class="screen active">
+        <h2>🌊 מבנה האישיות שלה</h2>
+        <div class="divider"></div>
+        <p class="sub">12 שאלות שממפות את מבנה האישיות שלה על 4 צירים פסיכולוגיים. בסוף: הטיפוס שלה, מבנה פנימי מלא, דפוס הלחץ שלה, ומדריך אישי בשבילך.</p>
         <div class="pillars">
-            <div class="pillar"><strong>⚡ אנרגיה</strong>מאיפה היא נטענת — מבפנים או מאנשים</div>
-            <div class="pillar"><strong>🌊 עיבוד רגשי</strong>איך היא מתמודדת — בשקט או בשיתוף</div>
-            <div class="pillar"><strong>🧭 המצפן הפנימי</strong>מה מניע אותה — ביטחון או ריגוש</div>
-            <div class="pillar"><strong>💭 קבלת החלטות</strong>איך היא מחליטה — ראש או לב</div>
+            <div class="pillar"><strong>🤝 דפוס הקשר</strong>מה היא צריכה בקרבה — מרחב או חיבור</div>
+            <div class="pillar"><strong>💬 שפת הרגש</strong>מה היא עושה עם הרגש — מחזיקה או משחררת</div>
+            <div class="pillar"><strong>🧭 מנוע הנשמה</strong>מה מניע אותה — שורשים או כנפיים</div>
+            <div class="pillar"><strong>🧠 שפת ההכרעה</strong>איך היא מחליטה — מנתחת או מרגישה</div>
         </div>
-        <div class="instruction-box">
+        <div class="note">
             <strong>איך משחקים?</strong> מקריאים לה את השאלה והאפשרויות, היא בוחרת — ואתה מקיש.<br>
-            <strong>הכלל החשוב:</strong> אחרי כל בחירה תן לה להסביר למה, ושקף לה ("אז מה שאת אומרת זה ש...") . ההסברים שלה שווים יותר מהתוצאה.
+            <strong>הכלל החשוב:</strong> אחרי כל בחירה תן לה להסביר למה. ההסברים שלה שווים יותר מהתוצאה — תקשיב כאילו זו הפעם הראשונה שאתה שומע אותה.
         </div>
-        <button class="start-btn" onclick="startQuiz()">מתחילים בסשן</button>
+        <button class="start-btn" onclick="startQuiz()">מתחילים</button>
     </div>
 
-    <!-- מסך שאלות -->
-    <div id="screen-quiz" class="screen">
-        <div class="progress-dots" id="progress-dots"></div>
-        <div class="progress-text" id="progress-text"></div>
-        <h2 id="question-title"></h2>
-        <div class="title-divider"></div>
-        <div id="options-container"></div>
-        <button class="back-btn" id="back-btn" onclick="goBack()">→ חזרה לשאלה הקודמת</button>
+    <!-- ─── Quiz ─── -->
+    <div id="s-quiz" class="screen">
+        <div class="dots" id="dots"></div>
+        <div class="qtop" id="qtop"></div>
+        <h2 id="qtitle"></h2>
+        <div class="divider"></div>
+        <div id="opts"></div>
+        <button class="back-btn" id="backbtn" onclick="goBack()">→ חזרה לשאלה הקודמת</button>
     </div>
 
-    <!-- מסך תוצאות -->
-    <div id="screen-results" class="screen">
+    <!-- ─── Results ─── -->
+    <div id="s-results" class="screen">
         <h2>🔑 מבנה האישיות שלה</h2>
-        <div class="title-divider"></div>
-        <div id="archetype-container"></div>
-        <div class="section-title">📊 ארבעת הצירים</div>
-        <div class="section-sub">המיקום שלה על כל ציר — ומה זה אומר בשבילך. ככל שהעיגול קרוב יותר לקצה, הנטייה מובהקת יותר.</div>
-        <div id="axes-container"></div>
-        <div id="deep-container"></div>
+        <div class="divider"></div>
+        <div id="r-arch"></div>
+        <div id="r-stress"></div>
+        <div id="r-shadow"></div>
+        <div class="sec-title">📊 ארבעת הצירים</div>
+        <div class="sec-sub">המיקום שלה על כל ציר — ומה זה אומר בשבילך בפועל.</div>
+        <div id="r-axes"></div>
+        <div id="r-deep"></div>
         <button class="copy-btn" onclick="copyResults()">📋 העתקת הניתוח המלא</button>
-        <button class="restart-btn" onclick="restartQuiz()">לעשות את השאלון שוב</button>
+        <button class="again-btn" onclick="restartQuiz()">לעשות את השאלון שוב</button>
     </div>
 
 </div>
+</div>
 
 <script>
-    // ===== מודל: 4 צירים, לכל ציר שני קטבים =====
-    const axes = {
-        A: {
-            name: "⚡ אנרגיה",
-            pole1: "עולם פנימי", pole2: "אנשים וחוויות",
-            insights: {
-                pole1: 'היא נטענת מבפנים. אחרי עומס היא צריכה שקט וזמן לבד — זה לא ריחוק ממך, זה הדלק שלה. <span class="foryou">בשבילך:</span> אל תיקח זמן־לבד שלה באופן אישי. תדאג לה למרחב כזה עוד לפני שהיא מבקשת — והיא תחזור אליך מלאה.',
-                bal:   'יש לה איזון נדיר — היא נהנית מאנשים, אבל יודעת להיות לבד בלי להרגיש בודדה. <span class="foryou">בשבילך:</span> שים לב למינון. כשהיא שקטה זה לא מצב רוח — זו הטענה. כשהיא מחפשת תוכניות — אל תשאיר אותה בבית.',
-                pole2: 'היא נטענת מאנשים וחוויות — בדידות ארוכה מרוקנת אותה. <span class="foryou">בשבילך:</span> תכננו דברים עם אנשים, תן לה את הבמה החברתית שלה, ואל תיעלב שהיא צריכה גם עולם שלם מעבר לכם.'
-            }
-        },
-        B: {
-            name: "🌊 עיבוד רגשי",
-            pole1: "מעבדת בפנים", pole2: "משתפת החוצה",
-            insights: {
-                pole1: 'רגשות היא מעבדת בשקט, מבפנים. כשמשהו כואב לה — לא בטוח שתראה את זה עליה. <span class="foryou">בשבילך:</span> שאל לשלומה גם כשנראה שהכל בסדר, ואל תלחץ לתשובה מיידית. תן לה זמן — והיא תיפתח בקצב שלה.',
-                bal:   'היא יודעת גם להכיל בשקט וגם לשתף — תלוי כמה היא בוטחת. <span class="foryou">בשבילך:</span> רמת השיתוף שלה איתך היא מד האמון שלכם. אם היא נפתחת אליך — אתה במעגל הפנימי. שמור על זה.',
-                pole2: 'היא מעבדת רגשות בקול — הדיבור הוא דרך החשיבה שלה. <span class="foryou">בשבילך:</span> כשהיא משתפת, היא לא מחפשת פתרון — היא חושבת בקול. תקשיב עד הסוף, אל תתקן באמצע.'
-            }
-        },
-        C: {
-            name: "🧭 המצפן הפנימי",
-            pole1: "יציבות וביטחון", pole2: "ריגוש וחידוש",
-            insights: {
-                pole1: 'ביטחון הוא צורך הבסיס שלה — היא בונה, שומרת ומחפשת קרקע יציבה. <span class="foryou">בשבילך:</span> עקביות שווה אצלה יותר מכל מחווה גדולה. הפתעות טובות — כן. זעזועים — לא.',
-                bal:   'היא צריכה בסיס יציב — וממנו לצאת להרפתקאות. עוגן וגלים, ביחד. <span class="foryou">בשבילך:</span> תן לה את שניהם: בית שאפשר לסמוך עליו, ותמיד משהו חדש באופק לצפות לו.',
-                pole2: 'חידוש הוא חמצן בשבילה — שגרה ארוכה מכבה אותה מבפנים. <span class="foryou">בשבילך:</span> שנה מסלולים, תכנן הפתעות, אל תיתן לקשר להפוך לאוטומט. השעמום מסוכן לכם יותר מכל ריב.'
-            }
-        },
-        D: {
-            name: "💭 קבלת החלטות",
-            pole1: "ראש והיגיון", pole2: "לב ואינטואיציה",
-            insights: {
-                pole1: 'היא מחליטה עם הראש — עובדות, ניתוח, היגיון. <span class="foryou">בשבילך:</span> בוויכוח תביא נימוקים, לא רק רגש. היא מכבדת חשיבה סדורה — ומריחה מניפולציה מקילומטר.',
-                bal:   'היא בודקת עם הראש ומאשרת עם הלב — ולכן ההחלטות שלה יציבות. <span class="foryou">בשבילך:</span> תן לה גם נתונים וגם תחושה טובה. אם אחד מהשניים חסר — היא תהסס, ובצדק.',
-                pole2: 'היא מחליטה עם הלב — האינטואיציה היא מערכת הניווט שלה. <span class="foryou">בשבילך:</span> אל תנסה לנצח אותה בלוגיקה כשמשהו מרגיש לה לא נכון. תחושת הבטן שלה כנראה קלטה משהו לפניך.'
-            }
+// ════════════════════════════════
+//  MODEL
+// ════════════════════════════════
+
+const axes = {
+    A: {
+        name: "🤝 דפוס הקשר",
+        pole1: "מרחב ועצמאות", pole2: "חיבור וקרבה",
+        insights: {
+            pole1: 'היא צריכה שטח נשימה בתוך הקרבה — לא כי היא לא אוהבת, אלא כי ככה היא נשארת שלמה. כשהיא מתרחקת קצת, זה טעינה — לא ריחוק. <span class="fy">בשבילך:</span> תן לה מרחב לפני שהיא מבקשת, ואמור לה ישר: "תיקחי זמן לעצמך." זה לא יגרום לה ללכת — זה יגרום לה לבחור לחזור.',
+            bal:   'היא נעה בין צורך בשטח לצורך בחיבור — ומוצאת את עצמה לפי הרגע. לא שיגעון — בינה. <span class="fy">בשבילך:</span> שים לב לאיזה קוטב היא נמשכת בתקופה הנוכחית. כשהיא מתכנסת — תיתן. כשהיא מחפשת קרבה — תהיה שם מלא.',
+            pole2: 'הקשר הוא האוויר שלה — לא תלות, אלא ככה היא חיה. החיבור עם מי שהיא אוהבת טוען אותה. <span class="fy">בשבילך:</span> נוכחות אמיתית שווה לה יותר ממתנות. טלפון מונח על השולחן, עין שמסתכלת עליה, גוף שנמצא כאן — זה מה שהיא מרגישה.'
         }
-    };
-
-    // ===== 4 טיפוסים (מצפן × החלטות) =====
-    const archetypes = {
-        "pole1_pole1": {
-            emoji: "🏛️", name: "האדריכלית", sub: "יציבות × ראש",
-            text: "היא בונה את החיים בתבונה — צעד אחרי צעד, עם חזון ברור. אמינות היא שפת האהבה שלה: תעשה מה שאמרת, תגיע מתי שאמרת. היא לא קרה — היא פשוט בוחרת בקפידה למי לפתוח את הלב, ומי שזכה — זכה בנאמנות של ברזל.<br><strong>מה שהיא הכי צריכה ממך:</strong> להיות שותף רציני לדרך. אדם שאפשר לבנות עליו — ולבנות איתו.",
-            deepQuestions: ["מה התוכנית הכי גדולה שיש לך לחיים?", "מה גורם לך לסמוך על מישהו באמת?", "איפה את רוצה שנהיה בעוד חמש שנים — בדיוק?"]
-        },
-        "pole1_pole2": {
-            emoji: "🌅", name: "הלב היציב", sub: "יציבות × לב",
-            text: "היא אוהבת עמוק, נאמן ושקט. הבית שהיא בונה הוא מפעל החיים שלה, והאנשים שלה הם העולם שלה. אל תטעה בשקט שלה — מתחתיו יש עוצמה של ים שלם.<br><strong>מה שהיא הכי צריכה ממך:</strong> להיות יציב כמוה, נוכח באמת, ולראות את כל מה שהיא עושה — בלי שתצטרך להגיד.",
-            deepQuestions: ["מה גורם לך להרגיש הכי בטוחה בנו?", "איזה רגע קטן שלנו את שומרת בלב?", "איך נראה הבית שאת חולמת לבנות?"]
-        },
-        "pole2_pole1": {
-            emoji: "🧭", name: "הנווטת", sub: "ריגוש × ראש",
-            text: "היא חוקרת עולם עם מצפן פנימי חד — סקרנית, עצמאית, ולא מפחדת מהלא־נודע. היא לא צריכה שיצילו אותה; היא צריכה שותף למסע שמסוגל לעמוד בקצב שלה.<br><strong>מה שהיא הכי צריכה ממך:</strong> חופש ואמון. תן לה מרחב — והיא תמיד תחזור לבחור בך מחדש.",
-            deepQuestions: ["לאן היית טסה מחר אם לא היו שום גבולות?", "מה את חוקרת עכשיו בחיים — מבפנים או בחוץ?", "איזה חופש הכי חשוב לך שאף אחד לא ייקח?"]
-        },
-        "pole2_pole2": {
-            emoji: "🔥", name: "הלהבה", sub: "ריגוש × לב",
-            text: "היא חיה בעוצמה — מרגישה הכל, רוצה הכל, ועכשיו. הספונטניות שלה היא לא חוסר בגרות — היא תאוות חיים. היא תיתן לך אהבה סוערת, בתנאי אחד: שלא תנסה לכבות אותה.<br><strong>מה שהיא הכי צריכה ממך:</strong> להצטרף לאש — לא לעמוד בצד עם דלי מים.",
-            deepQuestions: ["מה הדבר הכי משוגע שבא לך שנעשה יחד?", "מתי הרגשת הכי חיה השנה?", "איזו תשוקה שלך לא מקבלת מספיק מקום בחיים?"]
+    },
+    B: {
+        name: "💬 שפת הרגש",
+        pole1: "מחזיקה בפנים", pole2: "משחררת החוצה",
+        insights: {
+            pole1: 'היא מעבדת עולמות שלמים בלי שתמצמצי עין. כשמשהו גדול מכה — היא נסגרת קצת, עובדת על זה לבד, ורק אז מוכנה לדבר. זה לא קירות — זה תהליך. <span class="fy">בשבילך:</span> שאל פעם אחת בלבד: "רוצה לדבר על זה?" ואם אמרה לא — תן לה מרחב ותישאר נגיש. היא תיפתח כשתהיה מוכנה, לא כשתלחץ.',
+            bal:   'היא יודעת מתי לשמור ומתי לשחרר — בדרך כלל לפי גודל הדבר ומי לפניה. <span class="fy">בשבילך:</span> רמת הפתיחות שלה איתך היא מד האמון. אם היא מספרת לך — אתה הקרוב שבקרובים. תכבד את זה ואל תעשה ממנו נשק.',
+            pole2: 'הדיבור הוא חשיבה בשבילה — היא מגיעה להבנה דרך שיתוף, לא לפני כן. זה לא בעיה, זה הכלי שלה. <span class="fy">בשבילך:</span> כשהיא מדברת, היא לא מחפשת פתרון — היא מחפשת מישהו שיחזיק אותה מבלי לתקן. תן לה לגמור. גמרת — ורק אז שאל: "מה אתה יכול לעשות?"'
         }
-    };
-
-    const energyModifier = {
-        pole1: "🤫 <strong>הגרסה השקטה:</strong> את כל העוצמה הזאת היא מביאה מבפנים — במעגלים קטנים, אינטימיים ועמוקים. מי שלא מכיר אותה מקרוב — לא יודע כמה יש שם.",
-        bal:   "⚖️ <strong>הגרסה המאוזנת:</strong> היא נעה בטבעיות בין העולם הפנימי שלה לבין האנשים — תלוי מה הרגע מבקש ממנה.",
-        pole2: "📣 <strong>הגרסה המוחצנת:</strong> את כל העוצמה הזאת היא מביאה לעולם — עם אנשים, בקול, בנוכחות שאי אפשר לפספס."
-    };
-
-    // ===== 12 שאלות: 3 לכל ציר, משולבות כדי שאי אפשר לזהות דפוס =====
-    // score: pole1 = +2 לקוטב הראשון, bal = +1 לכל אחד, pole2 = +2 לקוטב השני
-    const questions = [
-        {
-            axis: "A",
-            title: "החוף המושלם — סוגרים לך יום חופש מחר בים. איזה חוף את בוחרת?",
-            options: [
-                { text: "מפרץ נסתר ושקט — רק אנחנו והגלים.", score: "pole1" },
-                { text: "חוף רגוע עם בית קפה קטן — שקט, אבל יש חיים מסביב.", score: "bal" },
-                { text: "חוף תוסס — מוזיקה, אנשים, אנרגיה באוויר.", score: "pole2" }
-            ]
-        },
-        {
-            axis: "C",
-            title: "ההפלגה — מציעים לנו הפלגה ליום שלם. איזו את בוחרת?",
-            options: [
-                { text: "שיט מוכר לאורך החוף — בטוח, יפה, בדוק.", score: "pole1" },
-                { text: "יעד חדש — אבל עם מסלול מתוכנן ומדריך טוב.", score: "bal" },
-                { text: "מפרשים פתוחים בלי יעד — לאן שהרוח תיקח.", score: "pole2" }
-            ]
-        },
-        {
-            axis: "B",
-            title: "הגל הקר — משהו מטריד נוחת עלייך באמצע היום, כמו גל קר. מה הצעד הראשון שלך?",
-            options: [
-                { text: "מתכנסת בעצמי — צריכה לעכל לבד לפני שאני מדברת.", score: "pole1" },
-                { text: "תלוי בגודל — דברים גדולים קודם מעכלת, קטנים מספרת מיד.", score: "bal" },
-                { text: "מרימה טלפון — חייבת לדבר על זה עכשיו.", score: "pole2" }
-            ]
-        },
-        {
-            axis: "D",
-            title: "הצומת — מגיעה צומת גדולה בחיים (עבודה, דירה, מעבר). מה מכריע אצלך בסוף?",
-            options: [
-                { text: "הנתונים — יתרונות, חסרונות, עובדות על השולחן.", score: "pole1" },
-                { text: "הראש בודק, הלב חותם — חייבת את שניהם.", score: "bal" },
-                { text: "תחושת הבטן. היא עוד לא טעתה לי.", score: "pole2" }
-            ]
-        },
-        {
-            axis: "A",
-            title: "אחרי הסערה — נגמר שבוע מטורף ועמוס. איך את ממלאת מצברים?",
-            options: [
-                { text: "ערב שלם לבד — אמבטיה, ספר, שקט מוחלט.", score: "pole1" },
-                { text: "ערב רגוע עם האדם הכי קרוב — בלי המונים.", score: "bal" },
-                { text: "לצאת! אנשים, צחוק, רעש טוב.", score: "pole2" }
-            ]
-        },
-        {
-            axis: "C",
-            title: "קו החוף — תהיי כנה: איך את באמת מרגישה עם שגרה קבועה?",
-            options: [
-                { text: "שגרה טובה היא עוגן — היא נותנת לי שקט.", score: "pole1" },
-                { text: "צריכה בסיס קבוע — אבל עם חלונות של הפתעה.", score: "bal" },
-                { text: "שגרה ארוכה זה מים עומדים — חייבת לשבור אותה.", score: "pole2" }
-            ]
-        },
-        {
-            axis: "B",
-            title: "החדשות הטובות — קיבלת בשורה מעולה. מה קורה בדקות הראשונות?",
-            options: [
-                { text: "שומרת רגע לעצמי, מחייכת מבפנים — אספר כשיתאים.", score: "pole1" },
-                { text: "מספרת לשניים־שלושה הכי קרובים.", score: "bal" },
-                { text: "כל מי שלידי שומע — אי אפשר להחזיק את זה בפנים!", score: "pole2" }
-            ]
-        },
-        {
-            axis: "D",
-            title: "הוויכוח — אנחנו לא מסכימים על משהו חשוב. מה באמת ישכנע אותך?",
-            options: [
-                { text: "היגיון — תביא נימוקים טובים ואשנה דעה בשמחה.", score: "pole1" },
-                { text: "תלוי בנושא — בפרקטי ראש, ברגשי לב.", score: "bal" },
-                { text: "שתבין אותי קודם — כשאני מרגישה מובנת, אני נפתחת.", score: "pole2" }
-            ]
-        },
-        {
-            axis: "A",
-            title: "המדורה — ערב מדורה על החוף עם הרבה אנשים. איפה אמצא אותך?",
-            options: [
-                { text: "בצד, בשיחה עמוקה אחת עם מישהו מעניין.", score: "pole1" },
-                { text: "נכנסת ויוצאת — קצת במרכז, קצת בצד.", score: "bal" },
-                { text: "ליד הגיטרה — באמצע הסיפורים והצחוק.", score: "pole2" }
-            ]
-        },
-        {
-            axis: "C",
-            title: "הצלילה — מציעים לך עכשיו, בלי הכנה, צלילה ראשונה בחיים. מה את עונה?",
-            options: [
-                { text: "תודה, לא — דברים כאלה מתכננים כמו שצריך.", score: "pole1" },
-                { text: "שאלות קודם: מי המדריך? כמה בטוח? ואז כנראה כן.", score: "bal" },
-                { text: "איפה חותמים? יאללה, לפני שאתחרט!", score: "pole2" }
-            ]
-        },
-        {
-            axis: "B",
-            title: "העצב — כשמשהו מעציב אותך, כמה רואים את זה עלייך?",
-            options: [
-                { text: "כמעט כלום — למדתי להחזיק פנים שקטות.", score: "pole1" },
-                { text: "מי שבאמת מכיר אותי — יקלוט מיד.", score: "bal" },
-                { text: "הכל על הפנים — אני ספר פתוח.", score: "pole2" }
-            ]
-        },
-        {
-            axis: "D",
-            title: "המציאה — בחנות קטנה על הטיילת מצאת משהו יקר שאת ממש רוצה. איך תחליטי?",
-            options: [
-                { text: "בודקת מחירים וביקורות — וישנה על זה לילה.", score: "pole1" },
-                { text: "בדיקה קצרה, ואם הלב עדיין שם — לוקחת.", score: "bal" },
-                { text: "אם זה הצית לי את העיניים — זה בא איתי הביתה.", score: "pole2" }
-            ]
+    },
+    C: {
+        name: "🧭 מנוע הנשמה",
+        pole1: "שורשים וביטחון", pole2: "כנפיים וצמיחה",
+        insights: {
+            pole1: 'הצורך הבסיסי שלה הוא ביטחון — לא כי היא חוששת מהחיים, אלא כי מתוך ביטחון היא פורחת. היא בונה לאיטה, ובוחרת בקפידה. <span class="fy">בשבילך:</span> עקביות ממך שווה לה אלף הפתעות. תגיע כשאמרת, תעשה מה שהבטחת, תהיה צפוי — ומשם כל השאר יזרום.',
+            bal:   'היא צריכה בסיס יציב — וממנו לגעת בשמים. העוגן והגלים, ביחד. <span class="fy">בשבילך:</span> תהיה הנמל הבטוח שממנו יוצאים להרפתקה. ביחד: ודאות בבית, הפתעות בחוץ.',
+            pole2: 'צמיחה היא צורך קיומי שלה — היא חייבת להרגיש שהחיים זזים קדימה. שגרה ארוכה מייבשת אותה. <span class="fy">בשבילך:</span> אל תיתן לשגרה להתקבע. זה לא אומר כאוס — אומר שתמיד יש משהו חדש לצפות לו: יעד, ניסיון, גדילה משותפת.'
         }
-    ];
-
-    let currentQuestionIndex = 0;
-    let answers = []; // { questionIndex, optionIndex }
-    let lockClick = false;
-
-    function showScreen(screenId) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(screenId).classList.add('active');
-        window.scrollTo(0, 0);
+    },
+    D: {
+        name: "🧠 שפת ההכרעה",
+        pole1: "ניתוח ומיפוי", pole2: "תחושה ואינטואיציה",
+        insights: {
+            pole1: 'היא מגיעה להחלטות דרך מיפוי — עובדות, ניתוח, ניהול סיכונים. זה לא קרירות, זה דיוק. <span class="fy">בשבילך:</span> בוויכוח — תביא נימוקים ברורים, לא רק רגש. תכבד את הניתוח שלה גם כשאתה לא מסכים. היא מריחה מניפולציה עוד לפני שפתחת את הפה.',
+            bal:   'היא עובדת בשני שלבים: הראש בודק אם זה הגיוני, הלב בודק אם זה נכון. שניהם חייבים להגיד כן. <span class="fy">בשבילך:</span> תן לה גם את הנתונים וגם את התחושה. אם אחד חסר — היא לא תצעד, ובצדק.',
+            pole2: 'האינטואיציה שלה היא מערכת ניווט מדויקת — היא קולטת דברים לפני שמילים מגיעים. <span class="fy">בשבילך:</span> כשמשהו מרגיש לה לא בסדר — זה לא "בגחמה". תשאל מה היא קולטת. לרוב יש שם משהו אמיתי.'
+        }
     }
+};
 
-    function startQuiz() {
-        currentQuestionIndex = 0;
-        answers = [];
-        showQuestion();
-        showScreen('screen-quiz');
+// ────── 4 Archetypes: C (שורשים/כנפיים) × D (ניתוח/תחושה) ──────
+const archetypes = {
+    "pole1_pole1": {
+        emoji: "🏛️", name: "הבונה", sub: "שורשים × ניתוח",
+        text: "היא בונה את החיים בכוונה — צעד מחושב אחרי צעד. לפני שהיא נוטעת אמון, היא בוחנת. לאחר שנטעה — נאמנותה של ברזל. אל תטעה בשקט שלה: מאחוריו עולם שלם של חשיבה עמוקה. היא לא מחפשת שיצילו אותה — היא מחפשת שיבנו איתה.",
+        needs: "מה שהיא הכי צריכה ממך: עקביות בפועל, לא בדיבור. תגיע כשאמרת. תעשה מה שאמרת. הבטחות קטנות שמתקיימות שוות לה יותר ממאות מחוות גדולות.",
+        shadow: "💡 לשים לב: לפעמים הצורך בוודאות גורם לה לוותר על דברים שהיו יכולים להיות מדהימים. עזור לה לראות שלא כל לא-ידוע הוא סכנה.",
+        deepQ: ["מה הדבר שאת הכי גאה שבנית לעצמך — לא קיבלת, בנית?", "מה גורם לך לסמוך על מישהו באמת, לא רק לתת להם קרדיט?", "איפה הגבול בשבילך בין ביטחון בריא לפחד שמתחפש לביטחון?"]
+    },
+    "pole1_pole2": {
+        emoji: "🌿", name: "השומרת", sub: "שורשים × תחושה",
+        text: "היא קוראת חדרים לפני שנכנסת אליהם. מרגישה את מה שלא נאמר, זוכרת את מה שנשכח, ואוהבת בשקט ובעומק. הביטחון שהיא מחפשת הוא לא חומות — הוא להרגיש שמישהו רואה אותה ממש, בלי שתצטרך לבקש.",
+        needs: "מה שהיא הכי צריכה ממך: להיות נראית. לא להיות מושלמת — נראית. שתשים לב בלי שתבקש, שתזכור בלי שתצטרך להזכיר.",
+        shadow: "💡 לשים לב: הנטייה שלה לדאוג לאחרים יכולה להגיע על חשבון הצרכים שלה. שאל אותה לשלומה גם כשנראה שהכל בסדר — ובמיוחד אז.",
+        deepQ: ["מה מרגיש לך 'בית' — אנשים, מקום, תחושה?", "מה את עושה עם הרגשות שאת לא מראה לאחרים?", "מתי לאחרונה מישהו ראה אותך ממש — ומה הוא ראה?"]
+    },
+    "pole2_pole1": {
+        emoji: "🧭", name: "הנווטת", sub: "כנפיים × ניתוח",
+        text: "היא מחזיקה מפה ומצפן — ויוצאת לחקור. עצמאית, סקרנית, ולא מפחדת מהלא-ידוע. היא בונה את עצמה בכוונה, לומדת כל הזמן, ומשתדרגת. היא לא צריכה שיצילו אותה — היא צריכה שותף שמסוגל לעמוד בקצב שלה ולהוסיף לה, לא לעכב אותה.",
+        needs: "מה שהיא הכי צריכה ממך: כבוד לאוטונומיה שלה. תסמוך עליה, תשאל שאלות מחשיבה ולא מחשד, ותן לה לפלס — היא תחזור בכוח.",
+        shadow: "💡 לשים לב: הנטייה לפתור הכל לבד יכולה לגרום לה לנתק את הקשר בזמן שהיא הכי צריכה אותו. שאל אותה: 'אתה יכול לעזור, או שעדיף שאתה כאן רק בשביל להיות?'",
+        deepQ: ["מה החקירה הכי גדולה שאת בה כרגע — מבפנים או מבחוץ?", "מה ההבדל בינך של עכשיו לבינך של חמש שנים שעברו?", "מה הדבר שהכי קשה לך לבקש עזרה בו — ולמה?"]
+    },
+    "pole2_pole2": {
+        emoji: "🔥", name: "הגשמת", sub: "כנפיים × תחושה",
+        text: "היא חיה מהלב ומתוך תשוקה. מרגישה הכל בעוצמה, מחפשת משמעות בכל דבר, ואוהבת עמוק ומלא. הספונטניות שלה אינה חוסר בגרות — היא אמירה שהחיים שווים להרגיש. היא תיתן לך אהבה שתשכיר בה — בתנאי שלא תנסה לצנן אותה.",
+        needs: "מה שהיא הכי צריכה ממך: שותפות אמיתית בעוצמה. תרגיש איתה, לא רק בצדה. אל תבין אותה — תחווה איתה.",
+        shadow: "💡 לשים לב: הצורך בעוצמה ומשמעות יכול לגרום לה לדחות את הקשר ברגעים של 'שגרה'. עזור לה לראות שגם שגרה יכולה להיות ספוגה בחיים.",
+        deepQ: ["מה היית רוצה להרגיש יותר בחיים שלך — מה חסר?", "מתי הרגשת הכי חיה ב-12 החודשים האחרונים?", "מה מאבד אותך — ומה מחזיר אותך לעצמך?"]
     }
+};
 
-    function showQuestion() {
-        const q = questions[currentQuestionIndex];
-        document.getElementById('question-title').innerText = q.title;
-        document.getElementById('progress-text').innerText = 'שאלה ' + (currentQuestionIndex + 1) + ' מתוך ' + questions.length;
-        document.getElementById('back-btn').style.display = currentQuestionIndex > 0 ? 'block' : 'none';
+// ── Relational modifier (from A) ──
+const relModifier = {
+    pole1: '🤫 <strong>הנוכחות שלה:</strong> היא מביאה את כל זה בצורה מרוכזת ופנימית — עם מעגל קטן ואינטימי. מי שלא מכיר אותה מקרוב, לא יודע כמה יש שם.',
+    bal:   '⚖️ <strong>הנוכחות שלה:</strong> היא יודעת להיות גם מרוכזת וגם פתוחה — תלוי מי לפניה ומה הרגע דורש.',
+    pole2: '🌊 <strong>הנוכחות שלה:</strong> היא מביאה את כל זה בנוכחות מלאה ומחוברת. כשהיא בחדר — מרגישים אותה.'
+};
 
-        const dots = document.getElementById('progress-dots');
-        dots.innerHTML = '';
-        questions.forEach((_, i) => {
-            const d = document.createElement('div');
-            d.className = 'dot' + (i < currentQuestionIndex ? ' done' : '');
-            dots.appendChild(d);
-        });
-
-        const letters = ['א', 'ב', 'ג'];
-        const optionsContainer = document.getElementById('options-container');
-        optionsContainer.innerHTML = '';
-        q.options.forEach((opt, idx) => {
-            const btn = document.createElement('button');
-            btn.className = 'option-btn';
-            btn.innerHTML = '<span class="letter">' + letters[idx] + '</span><span>' + opt.text + '</span>';
-            btn.onclick = () => selectOption(idx, btn);
-            optionsContainer.appendChild(btn);
-        });
-        window.scrollTo(0, 0);
+// ── Stress pattern (from B) ──
+const stressPattern = {
+    pole1: {
+        title: "🌑 כשמשהו מציף אותה",
+        text: "היא נסגרת. מבחוץ תיראה שקטה ואולי בסדר — מבפנים פועלים מנוע שלם. היא צריכה זמן לעכל לבד לפני שהיא מוכנה לדבר. לחץ לדיבור מוקדם לא יעזור — יסגור אותה עוד יותר.<br><strong>הנוסחה:</strong> שאל פעם אחת בלבד («רוצה לדבר?»), קבל את ה-«לא עכשיו» בנחת, והישאר נגיש. כשתהיה מוכנה — היא תמצא אותך."
+    },
+    bal: {
+        title: "🌓 כשמשהו מציף אותה",
+        text: "תלוי בגודל: דברים גדולים היא לרוב מעכלת לבד קודם, ורק אז מספרת. דברים קטנים יכולים לצאת מיד.<br><strong>הנוסחה:</strong> אל תניח. תשאל. «איך את?» שנאמר בכוונה — עם עיניים שמחכות לתשובה אמיתית — שווה יותר מכל ניחוש."
+    },
+    pole2: {
+        title: "🔓 כשמשהו מציף אותה",
+        text: "היא צריכה לדבר על זה — עכשיו. הדיבור הוא לא תלונה, הוא ויסות. ככה הרגש יוצא ומסתדר. בלי זה הוא נשאר תקוע.<br><strong>הנוסחה:</strong> שב, הנח את הטלפון, תקשיב עד הסוף. אל תצע פתרון עד שהיא תשאל. כשהיא תגמור — תשאל: «מה תעזור לך עכשיו?»"
     }
+};
 
-    function selectOption(optionIndex, btn) {
-        if (lockClick) return;
-        lockClick = true;
-        btn.classList.add('chosen');
-
-        setTimeout(() => {
-            lockClick = false;
-            answers.push({ questionIndex: currentQuestionIndex, optionIndex });
-            currentQuestionIndex++;
-            if (currentQuestionIndex < questions.length) {
-                showQuestion();
-            } else {
-                showResults();
-            }
-        }, 280);
+// ════════════════════════════════
+//  QUESTIONS (mixed order, projective)
+// ════════════════════════════════
+const Qs = [
+    // C1
+    { ax:"C", t:"ההפלגה — מציעים לנו הפלגה ליום שלם. איזו את בוחרת?",
+      opts:[
+        {s:"pole1", tx:"מסלול מוכר לאורך החוף — הנוף משתנה, הביטחון נשאר."},
+        {s:"bal",   tx:"יעד חדש — אבל עם מדריך טוב ותוואי מתוכנן."},
+        {s:"pole2", tx:"מפרשים פתוחים בלי יעד קבוע — לאן שהרוח תחליט."}
+      ]
+    },
+    // A1
+    { ax:"A", t:"סירה ביום לבד — מציעים לך ביום החופש הבא: סירה קטנה לים לבד ליום שלם. מה הדבר הראשון שאת מרגישה?",
+      opts:[
+        {s:"pole1", tx:"זה בדיוק מה שהייתי בוחרת — זמן שהוא שלי לגמרי."},
+        {s:"bal",   tx:"יכול להיות מדהים... אבל יתחרט לי קצת שאין מישהו לצד."},
+        {s:"pole2", tx:"יום שלם לבד? משהו יחסר — הכיף שלי הוא עם אנשים."}
+      ]
+    },
+    // D1
+    { ax:"D", t:"האדם החדש — מישהו חדש מתיישב לידך על החוף. כמה שניות עוברות. מה קורה?",
+      opts:[
+        {s:"pole1", tx:"אני מחכה לנתונים — מה הוא אומר ועושה, מה רואים."},
+        {s:"bal",   tx:"שילוב — מה הוא אומר + מה הגוף שלי חש לגביו."},
+        {s:"pole2", tx:"תחושת בטן עוד לפני שפתח את הפה. כבר יודעת את הוייב."}
+      ]
+    },
+    // B1
+    { ax:"B", t:"הגל הכבד — משהו מטריד נוחת עלייך באמצע יום רגיל. מה קורה בחצי השעה הראשונה?",
+      opts:[
+        {s:"pole1", tx:"מתכנסת. צריכה לעכל לבד לפני שאני מדברת על זה."},
+        {s:"bal",   tx:"תלוי בגודל — קטן: מספרת מיד. גדול: קודם מעכלת."},
+        {s:"pole2", tx:"מרימה טלפון — חייבת לדבר על זה עכשיו, עם מישהו."}
+      ]
+    },
+    // A2
+    { ax:"A", t:"החוף הסודי — מצאתם (לכם לבד) חוף מוסתר ומדהים. מה הרגש הראשון שעולה?",
+      opts:[
+        {s:"pole1", tx:"הנאה שקטה — המקום הפרטי שלי, שלנו, בלי עולם."},
+        {s:"bal",   tx:"אהבה למקום, וביחד מחשבה שאנשים שאוהבים היו נהנים כאן."},
+        {s:"pole2", tx:"כבר חושבת מי להביא לפה — דברים כאלה חייבים לחלוק."}
+      ]
+    },
+    // D2
+    { ax:"D", t:"הצומת הגדולה — מגיעה החלטה גדולה (עבודה, מעבר, שינוי). מה מכריע אצלך בסוף?",
+      opts:[
+        {s:"pole1", tx:"ניתוח קר: יתרונות, חסרונות, מה הנתונים אומרים."},
+        {s:"bal",   tx:"הראש בודק אם זה הגיוני. הלב חותם אם זה נכון. חייבת את שניהם."},
+        {s:"pole2", tx:"תחושת הבטן. תמיד. היא עוד לא הובילה אותי לאן שלא רציתי."}
+      ]
+    },
+    // C2
+    { ax:"C", t:"שגרה — תהיי כנה: איך את באמת מרגישה עם שגרה ברורה וקבועה?",
+      opts:[
+        {s:"pole1", tx:"שגרה טובה = חופש נפשי. הסדר הוא הרקע שממנו הכל אפשרי."},
+        {s:"bal",   tx:"צריכה בסיס — אבל עם חלונות לספונטניות. שניהם חשובים."},
+        {s:"pole2", tx:"שגרה ארוכה = מים עומדים. חייבת לשבור אותה לפני שמחניקה."}
+      ]
+    },
+    // B2
+    { ax:"B", t:"בשורה מעולה — קיבלת חדשות מדהימות. מה קורה בחמש הדקות הראשונות?",
+      opts:[
+        {s:"pole1", tx:"שומרת אותה רגע לעצמי — מחייכת מבפנים לפני שמספרת."},
+        {s:"bal",   tx:"מספרת לשניים-שלושה הקרובים ביותר מיד."},
+        {s:"pole2", tx:"כל מי שבקרבה שומע — אי אפשר להחזיק את זה בפנים!"}
+      ]
+    },
+    // A3
+    { ax:"A", t:"המדורה — ערב מדורה על החוף עם קבוצה גדולה. איפה תמצאי את עצמך?",
+      opts:[
+        {s:"pole1", tx:"בשיחה עמוקה אחד-על-אחד עם מישהו מעניין, קצת בצד."},
+        {s:"bal",   tx:"נכנסת ויוצאת — קצת במרכז, קצת בצד, תלוי ברגע."},
+        {s:"pole2", tx:"ליד האש, באמצע הסיפורים, הצחוק והאנרגיה."}
+      ]
+    },
+    // D3
+    { ax:"D", t:"תכנון הטיול — מתכננת את טיול ים שחלמנו עליו. איך זה נראה אצלך?",
+      opts:[
+        {s:"pole1", tx:"מפה מסומנת, לוח זמנים גמיש, תוכנית ב' למקרה שיפות."},
+        {s:"bal",   tx:"יעד ברור ושאר גמיש — אוהבת כיוון, לא בהכרח פרטים."},
+        {s:"pole2", tx:"עולים על הרכב ורואים — ההפתעות הן חלק מהנסיעה."}
+      ]
+    },
+    // B3
+    { ax:"B", t:"העצב — כשמשהו באמת מעציב אותך, כמה רואים את זה מבחוץ?",
+      opts:[
+        {s:"pole1", tx:"כמעט כלום — פנים שקטות, המון בפנים. למדתי לשמור."},
+        {s:"bal",   tx:"מי שבאמת מכיר אותי — יקלוט מיד. שאר לא בהכרח."},
+        {s:"pole2", tx:"הכל על הפנים. ספר פתוח — תמיד הייתי ככה."}
+      ]
+    },
+    // C3
+    { ax:"C", t:"הצלילה — מציעים לך עכשיו, בלי הכנה מוקדמת, צלילה ראשונה בחיים. מה התגובה?",
+      opts:[
+        {s:"pole1", tx:"תודה, לא — דבר כזה מתכננים כמו שצריך, לא קופצים."},
+        {s:"bal",   tx:"שאלות קודם: מי המדריך, כמה זה בטוח? ואז — כנראה כן."},
+        {s:"pole2", tx:"איפה חותמים? לפני שאתחרט!"}
+      ]
     }
+];
 
-    function goBack() {
-        if (currentQuestionIndex === 0) return;
-        currentQuestionIndex--;
-        answers.pop();
-        showQuestion();
-    }
+// ════════════════════════════════
+//  STATE
+// ════════════════════════════════
+let qi = 0, answers = [], locked = false;
 
-    // ===== חישוב הצירים =====
-    function computeAxes() {
-        const scores = {};
-        Object.keys(axes).forEach(k => scores[k] = { pole1: 0, pole2: 0 });
-        answers.forEach(a => {
-            const q = questions[a.questionIndex];
-            const s = q.options[a.optionIndex].score;
-            if (s === 'pole1') scores[q.axis].pole1 += 2;
-            else if (s === 'pole2') scores[q.axis].pole2 += 2;
-            else { scores[q.axis].pole1 += 1; scores[q.axis].pole2 += 1; }
-        });
-        const result = {};
-        Object.keys(scores).forEach(k => {
-            const { pole1, pole2 } = scores[k];
-            const total = pole1 + pole2;
-            const pct2 = total ? Math.round((pole2 / total) * 100) : 50;
-            const pct1 = 100 - pct2;
-            let lean, strength;
-            if (pct1 >= 67) { lean = 'pole1'; } else if (pct2 >= 67) { lean = 'pole2'; } else { lean = 'bal'; }
-            const maxPct = Math.max(pct1, pct2);
-            strength = maxPct >= 83 ? 'מובהק' : maxPct >= 67 ? 'נטייה ברורה' : 'מאוזנת';
-            result[k] = { pct1, pct2, lean, strength };
-        });
-        return result;
-    }
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0,0);
+}
 
-    function archetypeKey(axisResults) {
-        const c = axisResults.C.pct1 >= axisResults.C.pct2 ? 'pole1' : 'pole2';
-        const d = axisResults.D.pct1 >= axisResults.D.pct2 ? 'pole1' : 'pole2';
-        return c + '_' + d;
-    }
+function startQuiz() { qi = 0; answers = []; showQuestion(); showScreen('s-quiz'); }
 
-    function showResults() {
-        const axisResults = computeAxes();
-        const arch = archetypes[archetypeKey(axisResults)];
-        const energy = energyModifier[axisResults.A.lean];
+function showQuestion() {
+    const q = Qs[qi];
+    document.getElementById('qtop').innerText = 'שאלה ' + (qi+1) + ' מתוך ' + Qs.length;
+    document.getElementById('qtitle').innerText = q.t;
+    document.getElementById('backbtn').style.display = qi > 0 ? 'block' : 'none';
+    // dots
+    const dc = document.getElementById('dots'); dc.innerHTML = '';
+    Qs.forEach((_,i) => {
+        const d = document.createElement('div');
+        d.className = 'dot' + (i < qi ? ' done' : '');
+        dc.appendChild(d);
+    });
+    // options
+    const oc = document.getElementById('opts'); oc.innerHTML = '';
+    const lets = ['א','ב','ג'];
+    q.opts.forEach((o,i) => {
+        const b = document.createElement('button');
+        b.className = 'opt';
+        b.innerHTML = '<span class="l">' + lets[i] + '</span><span>' + o.tx + '</span>';
+        b.onclick = () => pick(i, b);
+        oc.appendChild(b);
+    });
+    window.scrollTo(0,0);
+}
 
-        document.getElementById('archetype-container').innerHTML =
-            '<div class="archetype-card">' +
-            '<div class="archetype-emoji">' + arch.emoji + '</div>' +
-            '<div class="archetype-name">' + arch.name + '</div>' +
-            '<div class="archetype-sub">' + arch.sub + '</div>' +
-            '<div class="archetype-text">' + arch.text + '</div>' +
-            '<div class="archetype-energy">' + energy + '</div>' +
-            '</div>';
+function pick(idx, btn) {
+    if (locked) return;
+    locked = true;
+    btn.classList.add('picked');
+    setTimeout(() => {
+        locked = false;
+        answers.push({ qi, idx });
+        qi++;
+        qi < Qs.length ? showQuestion() : buildResults();
+    }, 280);
+}
 
-        const axesContainer = document.getElementById('axes-container');
-        axesContainer.innerHTML = '';
-        Object.keys(axes).forEach(k => {
-            const ax = axes[k];
-            const r = axisResults[k];
-            const pole1Class = r.pct1 > r.pct2 ? 'active-pole' : '';
-            const pole2Class = r.pct2 > r.pct1 ? 'active-pole' : '';
-            const div = document.createElement('div');
-            div.className = 'axis-block';
-            div.innerHTML =
-                '<div class="axis-header"><div class="axis-name">' + ax.name + '</div>' +
-                '<div class="axis-strength">' + r.strength + '</div></div>' +
-                '<div class="axis-poles"><span class="' + pole1Class + '">' + ax.pole1 + ' ' + r.pct1 + '%</span>' +
-                '<span class="' + pole2Class + '">' + r.pct2 + '% ' + ax.pole2 + '</span></div>' +
-                '<div class="axis-track"><div class="axis-marker" style="right:' + r.pct2 + '%"></div></div>' +
-                '<div class="axis-insight">' + ax.insights[r.lean] + '</div>';
-            axesContainer.appendChild(div);
-        });
+function goBack() {
+    if (qi === 0) return;
+    qi--; answers.pop(); showQuestion();
+}
 
-        document.getElementById('deep-container').innerHTML =
-            '<div class="deep-box"><h3>💬 שלוש שאלות עומק להמשך הערב</h3>' +
-            'נבחרו במיוחד לטיפוס שלה — שאל אחת, ותן לתשובה את כל הזמן שבעולם:' +
-            '<ol>' + arch.deepQuestions.map(q => '<li>' + q + '</li>').join('') + '</ol></div>';
+// ════════════════════════════════
+//  SCORING
+// ════════════════════════════════
+function computeAxes() {
+    const sc = { A:{p1:0,p2:0}, B:{p1:0,p2:0}, C:{p1:0,p2:0}, D:{p1:0,p2:0} };
+    answers.forEach(a => {
+        const q = Qs[a.qi], s = q.opts[a.idx].s, ax = q.ax;
+        if (s==='pole1') sc[ax].p1+=2;
+        else if (s==='pole2') sc[ax].p2+=2;
+        else { sc[ax].p1+=1; sc[ax].p2+=1; }
+    });
+    const res = {};
+    Object.keys(sc).forEach(k => {
+        const {p1,p2} = sc[k], tot = p1+p2;
+        const pct2 = tot ? Math.round((p2/tot)*100) : 50;
+        const pct1 = 100-pct2;
+        const lean = pct1>=67 ? 'pole1' : pct2>=67 ? 'pole2' : 'bal';
+        const mx = Math.max(pct1,pct2);
+        const tag = mx>=84 ? 'מובהק' : mx>=67 ? 'נטייה ברורה' : 'מאוזן';
+        res[k] = {pct1,pct2,lean,tag};
+    });
+    return res;
+}
 
-        showScreen('screen-results');
-    }
+function archKey(r) {
+    return (r.C.pct1>=r.C.pct2?'pole1':'pole2') + '_' + (r.D.pct1>=r.D.pct2?'pole1':'pole2');
+}
 
-    function copyResults() {
-        const axisResults = computeAxes();
-        const arch = archetypes[archetypeKey(axisResults)];
-        const strip = s => s.replace(/<[^>]+>/g, '');
+// ════════════════════════════════
+//  RESULTS
+// ════════════════════════════════
+function buildResults() {
+    const r = computeAxes();
+    const arch = archetypes[archKey(r)];
 
-        let text = '🌊 מבנה האישיות שלה — מול הגלים\n\n' +
-            'הטיפוס: ' + arch.emoji + ' ' + arch.name + ' (' + arch.sub + ')\n' +
-            strip(arch.text.replace(/<br>/g, '\n')) + '\n' +
-            strip(energyModifier[axisResults.A.lean]) + '\n\n📊 ארבעת הצירים:\n';
-        Object.keys(axes).forEach(k => {
-            const ax = axes[k];
-            const r = axisResults[k];
-            text += '\n' + ax.name + ' (' + r.strength + '): ' + ax.pole1 + ' ' + r.pct1 + '% | ' + ax.pole2 + ' ' + r.pct2 + '%\n' +
-                strip(ax.insights[r.lean]) + '\n';
-        });
-        text += '\n💬 שאלות עומק:\n' + arch.deepQuestions.map((q, i) => (i + 1) + '. ' + q).join('\n');
+    // ── Archetype card ──
+    document.getElementById('r-arch').innerHTML =
+        '<div class="arch-card">' +
+        '<div class="arch-emoji">' + arch.emoji + '</div>' +
+        '<div class="arch-name">' + arch.name + '</div>' +
+        '<div class="arch-sub">' + arch.sub + '</div>' +
+        '<div class="arch-text">' + arch.text + '</div>' +
+        '<div class="arch-needs">' + arch.needs + '</div>' +
+        '<div class="arch-rel">' + relModifier[r.A.lean] + '</div>' +
+        '</div>';
 
-        navigator.clipboard.writeText(text).then(() => {
-            alert('הניתוח המלא הועתק! אפשר להדביק בפתקים או בווטסאפ.');
-        });
-    }
+    // ── Stress card ──
+    const sp = stressPattern[r.B.lean];
+    document.getElementById('r-stress').innerHTML =
+        '<div class="stress-card">' +
+        '<h4>' + sp.title + '</h4>' +
+        '<p>' + sp.text + '</p>' +
+        '</div>';
 
-    function restartQuiz() {
-        showScreen('screen-welcome');
-    }
+    // ── Shadow ──
+    document.getElementById('r-shadow').innerHTML =
+        '<div class="shadow-card"><span>💡 עיוור-כתם שכדאי לאהוב גם כן:</span> ' + arch.shadow + '</div>';
+
+    // ── Axes ──
+    const ac = document.getElementById('r-axes'); ac.innerHTML = '';
+    Object.keys(axes).forEach(k => {
+        const ax = axes[k], rv = r[k];
+        const p1c = rv.pct1>rv.pct2 ? 'live' : '';
+        const p2c = rv.pct2>rv.pct1 ? 'live' : '';
+        const d = document.createElement('div'); d.className = 'ax-block';
+        d.innerHTML =
+            '<div class="ax-head"><div class="ax-name">' + ax.name + '</div><div class="ax-tag">' + rv.tag + '</div></div>' +
+            '<div class="ax-poles"><span class="' + p1c + '">' + ax.pole1 + ' · ' + rv.pct1 + '%</span><span class="' + p2c + '">' + rv.pct2 + '% · ' + ax.pole2 + '</span></div>' +
+            '<div class="ax-track"><div class="ax-pin" style="right:' + rv.pct2 + '%"></div></div>' +
+            '<div class="ax-insight">' + ax.insights[rv.lean] + '</div>';
+        ac.appendChild(d);
+    });
+
+    // ── Deep questions ──
+    document.getElementById('r-deep').innerHTML =
+        '<div class="deep-box"><h3>💬 שלוש שאלות עומק להמשך הערב</h3>' +
+        '<p>נבחרו בדיוק לטיפוס שלה. שאל אחת — ותן לתשובה את כל הזמן שבעולם:</p>' +
+        '<ol>' + arch.deepQ.map(q=>'<li>'+q+'</li>').join('') + '</ol></div>';
+
+    showScreen('s-results');
+}
+
+function copyResults() {
+    const r = computeAxes();
+    const arch = archetypes[archKey(r)];
+    const sp = stressPattern[r.B.lean];
+    const strip = s => s.replace(/<[^>]+>/g,'');
+    let t = '🌊 מבנה האישיות שלה\n\n' +
+        'טיפוס: ' + arch.emoji + ' ' + arch.name + ' (' + arch.sub + ')\n' +
+        strip(arch.text) + '\n' + strip(arch.needs) + '\n' +
+        strip(relModifier[r.A.lean]) + '\n\n' +
+        strip(sp.title) + '\n' + strip(sp.text) + '\n\n' +
+        '📊 ארבעת הצירים:\n';
+    Object.keys(axes).forEach(k => {
+        const ax = axes[k], rv = r[k];
+        t += '\n' + ax.name + ' (' + rv.tag + '): ' + ax.pole1 + ' ' + rv.pct1 + '% | ' + ax.pole2 + ' ' + rv.pct2 + '%\n' +
+            strip(ax.insights[rv.lean]) + '\n';
+    });
+    t += '\n💬 שאלות עומק:\n' + arch.deepQ.map((q,i)=>(i+1)+'. '+q).join('\n');
+    navigator.clipboard.writeText(t).then(()=>alert('הניתוח הועתק!'));
+}
+
+function restartQuiz() { showScreen('s-welcome'); }
 </script>
-
 </body>
 </html>
