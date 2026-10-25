@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>מסע השברים של גאיה</title>
+<meta name="theme-color" content="#1B2838">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="שברים">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Secular+One&family=Varela+Round&display=swap">
+<style>
+/* Layout: one centered column; home = level map, quiz = one question card at a time */
+:root{
+  --bg:#EEF4FA; --surface:#FFFFFF; --surface2:#DCE6F0; --ink:#1B2838; --muted:#5A6B80;
+  --accent:#F2762E; --accent-ink:#FFFFFF; --teal:#178F82; --berry:#C93A60; --line:#C7D4E2;
+  --good-bg:#DDF3EE; --bad-bg:#FBE3EA;
+  --display:"Secular One","Varela Round",system-ui,sans-serif;
+  --body:"Varela Round",system-ui,"Segoe UI",Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121A24; --surface:#1B2633; --surface2:#2A3848; --ink:#E8EEF5; --muted:#9AAABD;
+  --accent:#F4884A; --accent-ink:#1B1208; --teal:#3CC2B2; --berry:#F0728F; --line:#334457;
+  --good-bg:#183A36; --bad-bg:#3F1F2A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121A24; --surface:#1B2633; --surface2:#2A3848; --ink:#E8EEF5; --muted:#9AAABD;
+  --accent:#F4884A; --accent-ink:#1B1208; --teal:#3CC2B2; --berry:#F0728F; --line:#334457;
+  --good-bg:#183A36; --bad-bg:#3F1F2A; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:max(24px,env(safe-area-inset-top,0px)) max(48px,env(safe-area-inset-bottom,0px))}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;line-height:1.2}
+h1{font-size:2.2rem}
+h2{font-size:1.5rem}
+p{margin:0}
+button{font:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+header.top .sub{color:var(--muted)}
+.meter{display:flex;flex-direction:column;gap:6px;min-width:200px;flex:1;max-width:280px}
+.meter .lbl{font-size:.85rem;color:var(--muted);display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+.bar{height:12px;border-radius:99px;background:var(--surface2);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .4s}
+
+/* level map */
+.levels{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.lvl{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:14px 16px;text-align:right;
+  display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center;color:var(--ink)}
+.lvl:hover:not(:disabled){border-color:var(--accent)}
+.lvl:disabled{opacity:.5;cursor:not-allowed}
+.lvl .num{grid-row:span 2;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;
+  font-family:var(--display);font-size:1.3rem;background:var(--surface2)}
+.lvl.done .num{background:var(--teal);color:var(--bg)}
+.lvl.current .num{background:var(--accent);color:var(--accent-ink)}
+.lvl .name{font-weight:700;line-height:1.3}
+.lvl .meta{font-size:.82rem;color:var(--muted)}
+.stars{letter-spacing:2px;color:var(--accent)}
+.stars .off{color:var(--line)}
+
+.foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:.9rem}
+.linkbtn{background:none;border:none;color:var(--muted);text-decoration:underline;padding:4px}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* quiz */
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.qhead .where{color:var(--muted);font-variant-numeric:tabular-nums}
+.dots{display:flex;gap:6px}
+.dots i{width:12px;height:12px;border-radius:50%;background:var(--surface2)}
+.dots i.r1{background:var(--teal)} .dots i.r2{background:var(--accent)} .dots i.r3{background:var(--berry)}
+.dots i.now{outline:2px solid var(--ink);outline-offset:1px}
+
+.lesson{background:var(--surface);border-radius:14px;padding:14px 18px;border:2px dashed var(--line);display:flex;flex-direction:column;gap:6px}
+.lesson summary{cursor:pointer;font-family:var(--display);color:var(--teal)}
+.lesson p{color:var(--ink)}
+
+.card{background:var(--surface);border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:20px;
+  box-shadow:0 2px 0 var(--line)}
+.qtext{font-size:1.25rem;line-height:1.7}
+.expr{direction:ltr;unicode-bidi:isolate;text-align:center;font-size:2rem;display:flex;justify-content:center;align-items:center;gap:.35em;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+.pic{display:flex;justify-content:center}
+.pic svg{max-width:100%;height:auto}
+.pic .on{fill:var(--accent)} .pic .off{fill:var(--surface2)} .pic .edge{stroke:var(--ink);stroke-width:2;fill:none}
+.pic path,.pic rect{stroke:var(--ink);stroke-width:2}
+
+.mixed{display:inline-flex;align-items:center;gap:.12em;direction:ltr;unicode-bidi:isolate;vertical-align:middle}
+.frac{display:inline-flex;flex-direction:column;align-items:center;line-height:1.15;font-size:.9em}
+.frac>span{padding:0 .2em}
+.frac>span:first-child{border-bottom:2px solid currentColor}
+.qm{display:inline-block;min-width:1.1em;border:2px dashed var(--accent);border-radius:6px;color:var(--accent);text-align:center;line-height:1.1}
+
+.choices{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.choice{background:var(--bg);border:2px solid var(--line);border-radius:14px;padding:14px;font-size:1.5rem;color:var(--ink);min-height:72px;
+  display:flex;align-items:center;justify-content:center}
+.choice:hover:not(:disabled){border-color:var(--accent)}
+.choice.sel{border-color:var(--accent);background:var(--surface);box-shadow:inset 0 0 0 2px var(--accent)}
+.choice.right{border-color:var(--teal);background:var(--good-bg)}
+.choice.wrong{border-color:var(--berry);background:var(--bad-bg)}
+
+.inrow{display:flex;justify-content:center;align-items:center;gap:16px;flex-wrap:wrap}
+.fracin{display:inline-flex;flex-direction:column;align-items:center;gap:6px;direction:ltr}
+.fracin hr{width:100%;border:none;border-top:3px solid var(--ink);margin:0}
+.box{width:90px;font:inherit;font-size:1.6rem;text-align:center;padding:6px;border:2px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-variant-numeric:tabular-nums}
+.box:focus{border-color:var(--accent);outline:none}
+
+.actions{display:flex;gap:12px;justify-content:flex-start;flex-wrap:wrap}
+.btn{background:var(--accent);color:var(--accent-ink);border:none;border-radius:12px;padding:12px 28px;font-family:var(--display);font-size:1.15rem}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line)}
+
+.fb{border-radius:14px;padding:14px 18px;display:flex;flex-direction:column;gap:6px;font-size:1.05rem}
+.fb.good{background:var(--good-bg)} .fb.bad{background:var(--bad-bg)} .fb.info{background:var(--surface2)}
+.fb strong{font-family:var(--display);font-weight:400;font-size:1.2rem}
+.pop{animation:pop .35s ease-out}
+@keyframes pop{0%{transform:scale(.96)}60%{transform:scale(1.02)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.pop{animation:none}.bar>i{transition:none}}
+
+.result{text-align:center;align-items:center}
+.result .big{font-size:3rem;letter-spacing:6px}
+@media (max-width:440px){
+  h1{font-size:1.8rem}
+  .card{padding:18px}
+  .expr{font-size:1.6rem}
+  .choice{font-size:1.3rem}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap" dir="rtl" lang="he">
+  <header class="top">
+    <div>
+      <h1>מסע השברים של גאיה</h1>
+      <p class="sub">100 שאלות ב־10 שלבים, מהקל אל הקשה. בהצלחה גאיה!</p>
+    </div>
+    <div class="meter" aria-label="התקדמות כללית">
+      <div class="lbl"><span>התקדמות</span><span id="totalLbl">0 / 100</span></div>
+      <div class="bar"><i id="totalBar" style="width:0%"></i></div>
+    </div>
+  </header>
+
+  <main id="view"></main>
+</div>
+
+<script>
+const LEVELS = [
+{name:"מה החלק הצבוע?", tip:"ספרי כמה חלקים יש בסך הכול (זה המכנה, למטה) וכמה מהם צבועים (זה המונה, למעלה).",
+ lesson:"שבר מתאר חלק משלם. המספר <b>למטה</b> (המכנה) אומר לכמה חלקים שווים חילקנו. המספר <b>למעלה</b> (המונה) אומר כמה חלקים לקחנו. למשל ב־[3/4]: חילקנו ל־4 ולקחנו 3.",
+ qs:[
+ {k:"mc",t:"איזה חלק מהעיגול צבוע?",p:["pie",1,2],ch:["[1/2]","[1/3]","[2/1]","[1/4]"],a:"[1/2]",ex:"העיגול מחולק ל־2 חלקים שווים, ו־1 צבוע. לכן [1/2]."},
+ {k:"mc",t:"איזה חלק מהעיגול צבוע?",p:["pie",1,4],ch:["[1/4]","[1/3]","[4/1]","[3/4]"],a:"[1/4]",ex:"4 חלקים שווים, 1 צבוע: [1/4]."},
+ {k:"mc",t:"איזה חלק מהמלבן צבוע?",p:["bar",1,3],ch:["[1/3]","[1/2]","[2/3]","[3/1]"],a:"[1/3]",ex:"3 חלקים, 1 צבוע: [1/3]."},
+ {k:"mc",t:"איזה חלק מהעיגול צבוע?",p:["pie",3,4],ch:["[3/4]","[1/4]","[4/3]","[3/5]"],a:"[3/4]",ex:"4 חלקים, 3 צבועים: [3/4]."},
+ {k:"mc",t:"איזה חלק מהמלבן צבוע?",p:["bar",2,5],ch:["[2/5]","[3/5]","[2/3]","[5/2]"],a:"[2/5]",ex:"5 חלקים, 2 צבועים: [2/5]."},
+ {k:"mc",t:"איזה חלק מהעיגול צבוע?",p:["pie",2,3],ch:["[2/3]","[1/3]","[3/2]","[2/4]"],a:"[2/3]",ex:"3 חלקים, 2 צבועים: [2/3]."},
+ {k:"mc",t:"איזה חלק מהמלבן צבוע?",p:["bar",3,8],ch:["[3/8]","[5/8]","[3/5]","[8/3]"],a:"[3/8]",ex:"8 חלקים, 3 צבועים: [3/8]. ([5/8] זה החלק הלא צבוע.)"},
+ {k:"mc",t:"איזה חלק מהעיגול צבוע?",p:["pie",5,6],ch:["[5/6]","[1/6]","[6/5]","[5/7]"],a:"[5/6]",ex:"6 חלקים, 5 צבועים: [5/6]."},
+ {k:"mc",t:"איזה חלק מהמלבן צבוע?",p:["bar",4,10],ch:["[4/10]","[6/10]","[10/4]","[4/6]"],a:"[4/10]",ex:"10 חלקים, 4 צבועים: [4/10]."},
+ {k:"mc",t:"איזה חלק מהעיגול <b>לא</b> צבוע?",p:["pie",7,8],ch:["[1/8]","[7/8]","[1/7]","[8/7]"],a:"[1/8]",ex:"8 חלקים, 7 צבועים, אז רק 1 לא צבוע: [1/8]."}
+]},
+{name:"מונה ומכנה", tip:"המונה למעלה, המכנה למטה. כשהמכנה זהה, השבר עם המונה הגדול יותר הוא הגדול.",
+ lesson:"כשלשני שברים יש <b>אותו מכנה</b>, החלקים באותו גודל. אז פשוט משווים מונים: [4/5] גדול מ־[2/5]. וכשהמונה שווה למכנה, כמו [6/6], לקחנו את כל החלקים, וזה שלם אחד.",
+ qs:[
+ {k:"mc",t:"בשבר [3/5], מה המונה?",ch:["3","5","8","2"],a:"3",ex:"המונה הוא המספר העליון: 3."},
+ {k:"mc",t:"בשבר [2/7], מה המכנה?",ch:["7","2","9","5"],a:"7",ex:"המכנה הוא המספר התחתון: 7."},
+ {k:"mc",t:"פיצה חולקה ל־8 משולשים שווים, ואכלת 3. איזה חלק מהפיצה אכלת?",ch:["[3/8]","[8/3]","[5/8]","[3/5]"],a:"[3/8]",ex:"8 חלקים בסך הכול (מכנה), אכלת 3 (מונה): [3/8]."},
+ {k:"mc",t:"איזה שבר גדול יותר?",ch:["[4/5]","[2/5]"],a:"[4/5]",ex:"אותו מכנה, אז משווים מונים: 4 גדול מ־2."},
+ {k:"mc",t:"איזה שבר הכי קטן?",ch:["[2/9]","[5/9]","[7/9]","[8/9]"],a:"[2/9]",ex:"לכולם מכנה 9, ול־[2/9] המונה הכי קטן."},
+ {k:"num",t:"כמה רבעים ([1/4]) יש בשלם אחד?",a:4,ex:"שלם מחולק ל־4 רבעים: [4/4] = 1."},
+ {k:"mc",t:"למה שווה [6/6]?",ch:["1","6","0","36"],a:"1",ex:"לקחנו את כל 6 החלקים מתוך 6, כלומר שלם אחד."},
+ {k:"frac",t:"כמה חסר ל־[3/7] כדי להגיע לשלם?",a:[4,7],ex:"שלם הוא [7/7]. חסרים 7 − 3 = 4 חלקים: [4/7]."},
+ {k:"frac",t:"בכיתה 10 ילדים, 7 מהם בנות. איזה חלק מהכיתה הם בנים?",a:[3,10],ex:"10 − 7 = 3 בנים מתוך 10: [3/10]."},
+ {k:"mc",t:"איזה שבר שווה ל־0?",ch:["[0/5]","[5/5]","[5/0]","[1/5]"],a:"[0/5]",ex:"מונה 0 אומר שלא לקחנו אף חלק, אז [0/5] = 0. (במכנה אסור לכתוב 0.)"}
+]},
+{name:"מי גדול יותר?", tip:"מונה זהה? המכנה הקטן מנצח. מכנים שונים? השווי לחצי, או הביאי למכנה משותף.",
+ lesson:"כשהמונה זהה, <b>המכנה הקטן יותר</b> נותן חתיכות גדולות יותר: [1/2] גדול מ־[1/3]. כדי לבדוק אם שבר גדול מחצי, הכפילי את המונה: אם יצא יותר מהמכנה, השבר גדול מחצי.",
+ qs:[
+ {k:"mc",t:"איזה שבר גדול יותר?",ch:["[1/2]","[1/3]"],a:"[1/2]",ex:"חצי פיצה גדול משליש פיצה. ככל שמחלקים ליותר חלקים, כל חלק קטן יותר."},
+ {k:"mc",t:"איזה שבר גדול יותר?",ch:["[1/5]","[1/8]"],a:"[1/5]",ex:"מונה זהה, והמכנה 5 קטן מ־8, אז [1/5] גדול יותר."},
+ {k:"mc",t:"איזה שבר גדול יותר?",ch:["[3/4]","[3/7]"],a:"[3/4]",ex:"בשניהם 3 חלקים, אבל רבעים גדולים משביעיות."},
+ {k:"mc",t:"איזה שבר גדול מחצי?",ch:["[4/7]","[2/5]","[3/8]","[1/3]"],a:"[4/7]",ex:"4 × 2 = 8, וזה יותר מ־7. לכן [4/7] גדול מחצי."},
+ {k:"mc",t:"איזה שבר קטן מחצי?",ch:["[4/9]","[5/8]","[3/5]","[6/10]"],a:"[4/9]",ex:"4 × 2 = 8, וזה פחות מ־9. לכן [4/9] קטן מחצי."},
+ {k:"mc",t:"איזה שבר שווה בדיוק לחצי?",ch:["[4/8]","[3/8]","[5/8]","[4/6]"],a:"[4/8]",ex:"4 הוא בדיוק חצי מ־8."},
+ {k:"mc",t:"איזה שבר גדול יותר?",ch:["[3/4]","[2/3]"],a:"[3/4]",ex:"מכנה משותף 12: [2/3] = [8/12] ו־[3/4] = [9/12]. לכן [3/4] גדול יותר."},
+ {k:"mc",t:"איזה שבר גדול יותר?",ch:["[7/8]","[5/6]"],a:"[7/8]",ex:"מכנה משותף 24: [5/6] = [20/24] ו־[7/8] = [21/24]. לכן [7/8] גדול יותר."},
+ {k:"mc",t:"איזה שבר הכי גדול?",ch:["[2/3]","[3/5]","[5/8]","[7/12]"],a:"[2/3]",ex:"לכל אחד חסר חלק אחר עד השלם, ונבדוק בשברים עשרוניים בערך: 0.67, 0.6, 0.625, 0.58. הכי גדול [2/3]."},
+ {k:"mc",t:"איזה שבר גדול מ־1?",ch:["[11/10]","[7/8]","[9/9]","[1/2]"],a:"[11/10]",ex:"כשהמונה גדול מהמכנה, השבר גדול משלם. [9/9] שווה בדיוק ל־1."}
+]},
+{name:"שברים שקולים", tip:"מה שעושים למונה, עושים גם למכנה. כפלי (או חלקי) את שניהם באותו מספר.",
+ lesson:"שברים שקולים נראים שונה אבל שווים באותה כמות. כופלים את המונה ואת המכנה <b>באותו מספר</b>: [1/2] = [2/4] = [3/6]. גם חלוקה של שניהם באותו מספר עובדת.",
+ qs:[
+ {k:"num",t:"השלימי את המספר החסר:",e:"[1/2] = [?/4]",a:2,ex:"2 ← 4: כפלנו ב־2. אז גם 1 × 2 = 2."},
+ {k:"num",t:"השלימי את המספר החסר:",e:"[1/3] = [?/6]",a:2,ex:"3 × 2 = 6, אז 1 × 2 = 2."},
+ {k:"num",t:"השלימי את המספר החסר:",e:"[2/5] = [?/10]",a:4,ex:"5 × 2 = 10, אז 2 × 2 = 4."},
+ {k:"num",t:"השלימי את המספר החסר:",e:"[3/4] = [?/12]",a:9,ex:"4 × 3 = 12, אז 3 × 3 = 9."},
+ {k:"num",t:"השלימי את המספר החסר:",e:"[2/3] = [8/?]",a:12,ex:"2 × 4 = 8, אז 3 × 4 = 12."},
+ {k:"num",t:"השלימי את המספר החסר:",e:"[5/6] = [?/18]",a:15,ex:"6 × 3 = 18, אז 5 × 3 = 15."},
+ {k:"num",t:"השלימי את המספר החסר:",e:"[4/7] = [12/?]",a:21,ex:"4 × 3 = 12, אז 7 × 3 = 21."},
+ {k:"mc",t:"איזה שבר שקול ל־[3/5]?",ch:["[6/10]","[5/3]","[6/8]","[9/10]"],a:"[6/10]",ex:"3 × 2 = 6 ו־5 × 2 = 10, אז [6/10] = [3/5]."},
+ {k:"mc",t:"איזה שבר <b>לא</b> שווה לחצי?",ch:["[4/9]","[3/6]","[5/10]","[7/14]"],a:"[4/9]",ex:"בשאר, המונה הוא בדיוק חצי מהמכנה. 4 הוא לא חצי מ־9."},
+ {k:"num",t:"השלימי את המספר החסר:",e:"[9/12] = [3/?]",a:4,ex:"9 ÷ 3 = 3, אז גם 12 ÷ 3 = 4."}
+]},
+{name:"צמצום שברים", tip:"חפשי מספר שמחלק גם את המונה וגם את המכנה, וחלקי בו את שניהם. המשיכי עד שאין יותר.",
+ lesson:"לצמצם זה לכתוב את השבר עם מספרים קטנים יותר. מחלקים מונה ומכנה <b>באותו מספר</b>. למשל [6/8]: שניהם מתחלקים ב־2, אז [6/8] = [3/4]. השבר מצומצם עד הסוף כשאין מספר (חוץ מ־1) שמחלק את שניהם.",
+ qs:[
+ {k:"frac",s:1,t:"צמצמי עד הסוף:",e:"[2/4]",a:[1,2],ex:"מחלקים ב־2: [1/2]."},
+ {k:"frac",s:1,t:"צמצמי עד הסוף:",e:"[3/9]",a:[1,3],ex:"מחלקים ב־3: [1/3]."},
+ {k:"frac",s:1,t:"צמצמי עד הסוף:",e:"[4/10]",a:[2,5],ex:"מחלקים ב־2: [2/5]."},
+ {k:"frac",s:1,t:"צמצמי עד הסוף:",e:"[6/8]",a:[3,4],ex:"מחלקים ב־2: [3/4]."},
+ {k:"frac",s:1,t:"צמצמי עד הסוף:",e:"[10/15]",a:[2,3],ex:"מחלקים ב־5: [2/3]."},
+ {k:"frac",s:1,t:"צמצמי עד הסוף:",e:"[12/16]",a:[3,4],ex:"מחלקים ב־4: [3/4]."},
+ {k:"frac",s:1,t:"צמצמי עד הסוף:",e:"[14/21]",a:[2,3],ex:"מחלקים ב־7: [2/3]."},
+ {k:"frac",s:1,t:"צמצמי עד הסוף:",e:"[18/24]",a:[3,4],ex:"מחלקים ב־6: [3/4]."},
+ {k:"frac",s:1,t:"צמצמי עד הסוף:",e:"[15/35]",a:[3,7],ex:"מחלקים ב־5: [3/7]."},
+ {k:"frac",s:1,t:"צמצמי עד הסוף:",e:"[16/40]",a:[2,5],ex:"מחלקים ב־8: [2/5]. (אפשר גם בשלבים: ב־2, ושוב ב־2, ושוב ב־2.)"}
+]},
+{name:"חיבור וחיסור, מכנה זהה", tip:"כשהמכנה זהה, מחברים או מחסרים רק את המונים. המכנה נשאר כמו שהוא.",
+ lesson:"[1/5] + [2/5]: אלה חמישיות, ויש לנו 1 ועוד 2 מהן, כלומר [3/5]. <b>המכנה לא משתנה</b>, כי גודל החתיכות לא השתנה. בסוף כדאי לבדוק אם אפשר לצמצם.",
+ qs:[
+ {k:"frac",t:"פתרי:",e:"[1/5] + [2/5] = ?",a:[3,5],ex:"1 + 2 = 3, המכנה נשאר 5: [3/5]."},
+ {k:"frac",t:"פתרי:",e:"[3/8] + [4/8] = ?",a:[7,8],ex:"3 + 4 = 7: [7/8]."},
+ {k:"frac",t:"פתרי:",e:"[5/7] − [2/7] = ?",a:[3,7],ex:"5 − 2 = 3: [3/7]."},
+ {k:"frac",t:"פתרי:",e:"[9/10] − [4/10] = ?",a:[1,2],ex:"9 − 4 = 5: [5/10], ואחרי צמצום [1/2]."},
+ {k:"frac",t:"פתרי:",e:"[2/9] + [4/9] = ?",a:[2,3],ex:"2 + 4 = 6: [6/9], ואחרי צמצום ב־3: [2/3]."},
+ {k:"frac",t:"פתרי:",e:"[11/12] − [5/12] = ?",a:[1,2],ex:"11 − 5 = 6: [6/12] = [1/2]."},
+ {k:"frac",t:"פתרי:",e:"[3/4] + [3/4] = ?",a:[3,2],ex:"3 + 3 = 6: [6/4] = [3/2], כלומר שלם וחצי."},
+ {k:"frac",t:"פתרי:",e:"[1/6] + [2/6] + [2/6] = ?",a:[5,6],ex:"1 + 2 + 2 = 5: [5/6]."},
+ {k:"frac",t:"פתרי:",e:"1 − [3/8] = ?",a:[5,8],ex:"1 = [8/8]. ואז 8 − 3 = 5: [5/8]."},
+ {k:"frac",t:"דנה שתתה [2/5] מבקבוק המים בבוקר ועוד [1/5] בצהריים. איזה חלק מהבקבוק שתתה?",a:[3,5],ex:"[2/5] + [1/5] = [3/5]."}
+]},
+{name:"מספרים מעורבים", tip:"משבר למעורב: מחלקים מונה במכנה (המנה = שלמים, השארית = מונה). חזרה: שלם × מכנה + מונה.",
+ lesson:"[7/2] הם שבעה חצאים. כל 2 חצאים הם שלם אחד, אז 7 ÷ 2 = 3 ושארית 1, כלומר 3[1/2]. ובחזרה: 2[1/5] = (2 × 5 + 1) חמישיות = [11/5].",
+ qs:[
+ {k:"mc",t:"כתבי את [7/2] כמספר מעורב:",ch:["3[1/2]","2[1/2]","3[2/7]","1[5/2]"],a:"3[1/2]",ex:"7 ÷ 2 = 3 ושארית 1, לכן 3[1/2]."},
+ {k:"mc",t:"כתבי את [11/4] כמספר מעורב:",ch:["2[3/4]","3[1/4]","2[1/4]","2[4/11]"],a:"2[3/4]",ex:"11 ÷ 4 = 2 ושארית 3, לכן 2[3/4]."},
+ {k:"frac",t:"כתבי את 1[2/3] כשבר (מונה ומכנה):",a:[5,3],ex:"1 × 3 + 2 = 5, לכן [5/3]."},
+ {k:"frac",t:"כתבי את 2[1/5] כשבר:",a:[11,5],ex:"2 × 5 + 1 = 11, לכן [11/5]."},
+ {k:"mc",t:"כתבי את [17/5] כמספר מעורב:",ch:["3[2/5]","3[1/5]","2[2/5]","4[2/5]"],a:"3[2/5]",ex:"17 ÷ 5 = 3 ושארית 2, לכן 3[2/5]."},
+ {k:"frac",t:"כתבי את 3[3/4] כשבר:",a:[15,4],ex:"3 × 4 + 3 = 15, לכן [15/4]."},
+ {k:"num",t:"כמה שלמים יש ב־[20/4]?",a:5,ex:"20 ÷ 4 = 5 בדיוק, בלי שארית."},
+ {k:"mc",t:"מה גדול יותר?",ch:["[8/3]","2[1/3]"],a:"[8/3]",ex:"[8/3] = 2[2/3], וזה יותר מ־2[1/3]."},
+ {k:"num",t:"פתרי:",e:"1[1/2] + 2[1/2] = ?",a:4,ex:"שלמים: 1 + 2 = 3. חצי ועוד חצי = 1. ביחד 4."},
+ {k:"mc",t:"פתרי:",e:"3[3/4] − 1[1/4] = ?",ch:["2[1/2]","2[1/4]","2","1[1/2]"],a:"2[1/2]",ex:"שלמים: 3 − 1 = 2. שברים: [3/4] − [1/4] = [2/4] = [1/2]. ביחד 2[1/2]."}
+]},
+{name:"מכנים שונים", tip:"מצאי מכנה משותף (מספר ששני המכנים מתחלקים בו), הרחיבי את שני השברים, ורק אז חברי או חסרי.",
+ lesson:"אי אפשר לחבר חצאים ושלישים ישירות, כי החתיכות בגדלים שונים. מוצאים <b>מכנה משותף</b>: ל־2 ול־3 זה 6. אז [1/2] = [3/6] ו־[1/3] = [2/6], ו־[3/6] + [2/6] = [5/6].",
+ qs:[
+ {k:"frac",t:"פתרי:",e:"[1/2] + [1/4] = ?",a:[3,4],ex:"[1/2] = [2/4]. אז [2/4] + [1/4] = [3/4]."},
+ {k:"frac",t:"פתרי:",e:"[1/3] + [1/6] = ?",a:[1,2],ex:"[1/3] = [2/6]. אז [2/6] + [1/6] = [3/6] = [1/2]."},
+ {k:"frac",t:"פתרי:",e:"[1/2] + [1/3] = ?",a:[5,6],ex:"מכנה 6: [3/6] + [2/6] = [5/6]."},
+ {k:"frac",t:"פתרי:",e:"[3/4] − [1/2] = ?",a:[1,4],ex:"[1/2] = [2/4]. אז [3/4] − [2/4] = [1/4]."},
+ {k:"frac",t:"פתרי:",e:"[2/3] − [1/4] = ?",a:[5,12],ex:"מכנה 12: [8/12] − [3/12] = [5/12]."},
+ {k:"frac",t:"פתרי:",e:"[2/5] + [1/3] = ?",a:[11,15],ex:"מכנה 15: [6/15] + [5/15] = [11/15]."},
+ {k:"frac",t:"פתרי:",e:"[5/6] − [3/8] = ?",a:[11,24],ex:"מכנה 24: [20/24] − [9/24] = [11/24]."},
+ {k:"frac",t:"פתרי:",e:"[3/4] + [2/3] = ?",a:[17,12],ex:"מכנה 12: [9/12] + [8/12] = [17/12], כלומר 1[5/12]."},
+ {k:"mc",t:"פתרי:",e:"2[1/2] + 1[2/3] = ?",ch:["4[1/6]","3[3/5]","3[1/6]","4[1/3]"],a:"4[1/6]",ex:"שלמים: 2 + 1 = 3. שברים: [3/6] + [4/6] = [7/6] = 1[1/6]. ביחד 4[1/6]."},
+ {k:"frac",t:"יוסי הלך [3/4] ק\"מ, נח, ואז הלך עוד [2/5] ק\"מ. כמה ק\"מ הלך בסך הכול? (כתבי כשבר)",a:[23,20],ex:"מכנה 20: [15/20] + [8/20] = [23/20] ק\"מ, כלומר 1[3/20] ק\"מ."}
+]},
+{name:"כפל שברים", tip:"מונה כפול מונה, מכנה כפול מכנה. \"חלק מתוך מספר\": חלקי במכנה, וכפלי במונה.",
+ lesson:"בכפל לא צריך מכנה משותף: [2/3] × [3/4] = [(2×3)/(3×4)] = [6/12] = [1/2]. ו<b>\"[3/4] מ־24\"</b> פירושו 24 ÷ 4 = 6 (רבע אחד), ואז 6 × 3 = 18.",
+ qs:[
+ {k:"frac",t:"פתרי:",e:"[1/2] × [1/3] = ?",a:[1,6],ex:"1 × 1 = 1, 2 × 3 = 6: [1/6]."},
+ {k:"frac",t:"פתרי:",e:"[2/3] × [3/4] = ?",a:[1,2],ex:"[6/12] = [1/2]."},
+ {k:"frac",t:"פתרי:",e:"[3/5] × [5/7] = ?",a:[3,7],ex:"[15/35] = [3/7]. (אפשר גם לצמצם את ה־5 לפני הכפל.)"},
+ {k:"num",t:"כמה זה [1/4] מ־20?",a:5,ex:"20 ÷ 4 = 5."},
+ {k:"num",t:"כמה זה [3/4] מ־24?",a:18,ex:"24 ÷ 4 = 6, ו־6 × 3 = 18."},
+ {k:"num",t:"כמה זה [2/5] מ־35?",a:14,ex:"35 ÷ 5 = 7, ו־7 × 2 = 14."},
+ {k:"frac",t:"פתרי:",e:"3 × [2/7] = ?",a:[6,7],ex:"3 × 2 = 6, המכנה נשאר 7: [6/7]."},
+ {k:"frac",t:"פתרי:",e:"[4/9] × [3/8] = ?",a:[1,6],ex:"[12/72] = [1/6]."},
+ {k:"num",t:"פתרי:",e:"2[1/2] × [2/5] = ?",a:1,ex:"2[1/2] = [5/2]. ואז [5/2] × [2/5] = [10/10] = 1."},
+ {k:"num",t:"בכיתה 30 תלמידים, ו־[2/3] מהם אוהבים כדורגל. כמה תלמידים אוהבים כדורגל?",a:20,ex:"30 ÷ 3 = 10, ו־10 × 2 = 20."}
+]},
+{name:"חילוק ואתגרים", tip:"לחלק בשבר = לכפול בהופכי שלו (להפוך את השבר השני). בבעיות מילוליות, כתבי קודם את התרגיל.",
+ lesson:"לחלק בשבר זה לכפול ב<b>הופכי</b> שלו: [2/3] ÷ [3/4] = [2/3] × [4/3] = [8/9]. כדאי לחשוב על זה כך: \"כמה פעמים [1/4] נכנס ב־[1/2]?\" פעמיים.",
+ qs:[
+ {k:"num",t:"פתרי:",e:"[1/2] ÷ [1/4] = ?",a:2,ex:"[1/2] × [4/1] = [4/2] = 2. ברבע נכנס פעמיים בחצי."},
+ {k:"num",t:"פתרי:",e:"3 ÷ [1/5] = ?",a:15,ex:"3 × 5 = 15. בכל שלם יש 5 חמישיות, ובשלושה שלמים 15."},
+ {k:"frac",t:"פתרי:",e:"[2/3] ÷ [3/4] = ?",a:[8,9],ex:"[2/3] × [4/3] = [8/9]."},
+ {k:"frac",t:"פתרי:",e:"[4/5] ÷ 2 = ?",a:[2,5],ex:"[4/5] × [1/2] = [4/10] = [2/5]."},
+ {k:"frac",t:"פתרי:",e:"[7/8] ÷ [1/4] = ?",a:[7,2],ex:"[7/8] × 4 = [28/8] = [7/2], כלומר 3[1/2]."},
+ {k:"num",t:"פתרי:",e:"1[1/2] ÷ [3/4] = ?",a:2,ex:"1[1/2] = [3/2]. ואז [3/2] × [4/3] = [12/6] = 2."},
+ {k:"num",t:"חבל באורך 6 מטרים חותכים לחתיכות של [3/4] מטר. כמה חתיכות יהיו?",a:8,ex:"6 ÷ [3/4] = 6 × [4/3] = 24 ÷ 3 = 8."},
+ {k:"frac",t:"רוני קראה [1/3] מהספר ביום ראשון ו־[1/4] ממנו ביום שני. איזה חלק מהספר עוד נשאר לה?",a:[5,12],ex:"קראה [4/12] + [3/12] = [7/12]. נשאר 1 − [7/12] = [5/12]."},
+ {k:"num",t:"[3/5] ממספר מסוים הם 24. מה המספר?",a:40,ex:"אם 3 חמישיות הן 24, חמישית אחת היא 24 ÷ 3 = 8. חמש חמישיות: 8 × 5 = 40."},
+ {k:"num",t:"אתגר אחרון:",e:"([1/2] + [1/3]) × [6/5] = ?",a:1,ex:"[1/2] + [1/3] = [5/6]. ואז [5/6] × [6/5] = [30/30] = 1. כל הכבוד!"}
+]}
+];
+
+/* ---------- messages for Gaia ---------- */
+const PRAISE = [
+ "כל הכבוד גאיה! אבי ממש שמח שהצלחת.",
+ "וואו, גאיה! תשובה מושלמת. אבי גאה בך.",
+ "גאיה דור עושה את זה שוב! אבי קופץ משמחה.",
+ "גוווול! גאיה בועטת, והשבר נכנס לרשת! הקהל משתולל, ובעיקר אבי.",
+ "הודעה דחופה מאבי: גאיה היא אלופת השברים!",
+ "נכון! אם השברים היו פיצה, היה מגיע לך משולש נוסף. אבי שמח.",
+ "בדיוק! אבי אומר: ידעתי שתצליחי.",
+ "יש! גאיה 1, שברים 0. אבי מוחא כפיים.",
+ "מבזק: מדענים מאשרים שגאיה דור גאונה. אבי בכלל לא מופתע.",
+ "מלכת השברים צדקה שוב! אבי משתחווה בפנייך, גאיה.",
+ "תשובה של אלופה! אבי שמח בשבילך, גאיה.",
+ "פששש, גאיה! איזה ראש. אבי מרוצה.",
+ "נכון ב־[100/100]! כל הכבוד גאיה, אבי שמח.",
+ "גאיה, את מדהימה! אבי שולח לך חיבוק ענק.",
+ "הצלחת! אבי עושה עכשיו ריקוד ניצחון בסלון.",
+ "תותחית! אבי שמח שאת מבינה את זה כל כך טוב.",
+ "כל הכבוד גאיה! עוד צעד במסע, ואבי מעודד מהצד.",
+ "בול! אפילו המורה למתמטיקה הייתה מתרגשת. ואבי בטוח מתרגש.",
+ "טראח! עוד שאלה נפלה. אבי שמח, גאיה.",
+ "גאיה דור, תזכרו את השם הזה! אבי בטוח לא ישכח. כל הכבוד!",
+ "אש! השברים כבר מפחדים ממך. אבי מת עלייך.",
+ "כפיים לגאיה! אבי מוחא הכי חזק.",
+ "את פשוט מבריקה, גאיה. אבי מתגאה בך.",
+ "נכון! מכאן ועד הירח, אבי גאה בך.",
+ "ראש גדול, גאיה! אבי אומר שאת הכי חכמה."
+];
+const PRAISE_RETRY = [
+ "לא ויתרת, וזה מה שחשוב! אבי שמח, גאיה.",
+ "בניסיון השני, והפעם בול! כל הכבוד גאיה.",
+ "ככה אלופות עושות: מתקנות וממשיכות. אבי גאה בך.",
+ "יש! תיקנת לבד. אבי אומר כל הכבוד, גאיה."
+];
+const TRY_AGAIN = ["עוד לא, גאיה. נסי שוב, את יכולה!","כמעט! עוד ניסיון אחד, גאיה.","לא נורא, גאיה. תסתכלי על הרמז ונסי שוב."];
+const bags = new Map();
+function pickFrom(list){
+  let bag = bags.get(list);
+  if(!bag || !bag.length){ bag = shuffle(list); bags.set(list,bag) }
+  return bag.pop();
+}
+
+/* ---------- Avi's recordings ----------
+   Put audio files next to this page and list them here, e.g. "sounds/avi-1.mp3".
+   "correct" plays after a right answer, "levelDone" at the end of a level, "finale" after all 100. */
+const RECORDINGS = { correct: [], levelDone: [], finale: [] };
+let muted = false;
+try { muted = localStorage.getItem("fractions-muted") === "1" } catch(e) {}
+const hasRecordings = () => Object.values(RECORDINGS).some(a => a.length);
+let playing = null;
+function playRec(kind){
+  const list = RECORDINGS[kind];
+  if(muted || !list || !list.length) return;
+  try { playing && playing.pause(); playing = new Audio(pickFrom(list)); playing.play().catch(()=>{}) } catch(e) {}
+}
+function muteBtn(){
+  return hasRecordings() ? `<button class="linkbtn" id="mute">${muted ? "להפעיל את ההקלטות של אבי" : "להשתיק את ההקלטות של אבי"}</button>` : "";
+}
+function bindMute(){
+  const b = document.getElementById("mute"); if(!b) return;
+  b.onclick = () => { muted = !muted; try { localStorage.setItem("fractions-muted", muted ? "1" : "0") } catch(e) {}
+    if(muted && playing) playing.pause(); b.textContent = muted ? "להפעיל את ההקלטות של אבי" : "להשתיק את ההקלטות של אבי" };
+}
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const view = $("#view");
+const gcd = (a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+function fmt(s){
+  return String(s).replace(/(\d+)?\[([\d?()×\s]+)\/([\d?()×\s]+)\]/g,(m,w,n,d)=>{
+    const part=x=>x.trim()==="?"?'<span class="qm">?</span>':x.trim();
+    return `<span class="mixed">${w?`<span>${w}</span>`:""}<span class="frac"><span>${part(n)}</span><span>${part(d)}</span></span></span>`;
+  }).replace(/= \?$/,'= <span class="qm">?</span>');
+}
+function pic([shape,n,d]){
+  if(shape==="bar"){
+    const W=300,H=70,w=W/d;let r="";
+    for(let i=0;i<d;i++) r+=`<rect x="${2+i*w}" y="2" width="${w}" height="${H}" class="${i<n?"on":"off"}"/>`;
+    return `<svg viewBox="0 0 ${W+4} ${H+4}" width="${W+4}" role="img" aria-label="מלבן מחולק ל־${d} חלקים, ${n} צבועים">${r}</svg>`;
+  }
+  const c=90,R=84;let r="";
+  for(let i=0;i<d;i++){
+    const a0=-Math.PI/2+i*2*Math.PI/d, a1=a0+2*Math.PI/d;
+    const x0=c+R*Math.cos(a0),y0=c+R*Math.sin(a0),x1=c+R*Math.cos(a1),y1=c+R*Math.sin(a1);
+    r+=`<path d="M${c},${c} L${x0.toFixed(2)},${y0.toFixed(2)} A${R},${R} 0 0 1 ${x1.toFixed(2)},${y1.toFixed(2)} Z" class="${i<n?"on":"off"}"/>`;
+  }
+  return `<svg viewBox="0 0 180 180" width="180" role="img" aria-label="עיגול מחולק ל־${d} חלקים, ${n} צבועים">${r}</svg>`;
+}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+/* ---------- progress (per-browser) ---------- */
+const KEY="fractions-journey-v1";
+let prog={};
+try{prog=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){prog={}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(prog))}catch(e){}}
+const qid=(l,i)=>`${l}-${i}`;
+const lvlAnswered=l=>LEVELS[l].qs.filter((_,i)=>prog[qid(l,i)]).length;
+const lvlFirst=l=>LEVELS[l].qs.filter((_,i)=>prog[qid(l,i)]===1).length;
+const starsFor=l=>{const f=lvlFirst(l);return f>=9?3:f>=7?2:f>=4?1:0};
+const unlocked=l=>l===0||lvlAnswered(l-1)===LEVELS[l-1].qs.length;
+function updateTotal(){
+  const t=Object.keys(prog).length;
+  $("#totalLbl").textContent=`${t} / 100`;
+  $("#totalBar").style.width=t+"%";
+}
+function starHTML(n){return `<span class="stars" aria-label="${n} כוכבים">${"★".repeat(n)}<span class="off">${"★".repeat(3-n)}</span></span>`}
+
+/* ---------- home ---------- */
+function home(){
+  updateTotal();
+  let cur=LEVELS.findIndex((_,l)=>unlocked(l)&&lvlAnswered(l)<10);
+  view.innerHTML=`<section style="display:flex;flex-direction:column;gap:16px">
+    <h2>היי גאיה! בחרי שלב</h2>
+    <div class="levels">${LEVELS.map((L,l)=>{
+      const a=lvlAnswered(l),done=a===10,open=unlocked(l);
+      const cls=done?"done":l===cur?"current":"";
+      const meta=!open?"נעול: סיימי את השלב הקודם":done?starHTML(starsFor(l)):a?`${a} מתוך 10`:"10 שאלות";
+      return `<button class="lvl ${cls}" data-l="${l}" ${open?"":"disabled"}>
+        <span class="num">${l+1}</span><span class="name">${L.name}</span><span class="meta">${meta}</span></button>`}).join("")}
+    </div>
+    <div class="foot"><span>ההתקדמות נשמרת בדפדפן הזה.</span>${muteBtn()}<span id="resetZone"><button class="linkbtn" id="reset">להתחיל מחדש</button></span></div>
+  </section>`;
+  view.querySelectorAll(".lvl").forEach(b=>b.onclick=()=>startLevel(+b.dataset.l));
+  bindMute();
+  $("#reset").onclick=()=>{
+    $("#resetZone").innerHTML=`<span class="confirm">למחוק את כל ההתקדמות? <button class="btn ghost" id="yes" style="padding:6px 14px;font-size:1rem">כן, למחוק</button><button class="linkbtn" id="no">ביטול</button></span>`;
+    $("#yes").onclick=()=>{prog={};save();home()};
+    $("#no").onclick=home;
+  };
+}
+
+/* ---------- quiz ---------- */
+let L=0,I=0,tries=0,sel=null,finished=false;
+function startLevel(l){
+  L=l;
+  const first=LEVELS[l].qs.findIndex((_,i)=>!prog[qid(l,i)]);
+  I=first===-1?0:first;
+  if(first===-1){LEVELS[l].qs.forEach((_,i)=>delete prog[qid(l,i)]);save()}
+  showQ();
+}
+function showQ(){
+  updateTotal();
+  tries=0;sel=null;finished=false;
+  const Lv=LEVELS[L],q=Lv.qs[I];
+  const dots=Lv.qs.map((_,i)=>`<i class="${prog[qid(L,i)]?"r"+prog[qid(L,i)]:""} ${i===I?"now":""}"></i>`).join("");
+  let body="";
+  if(q.k==="mc"){
+    body=`<div class="choices">${shuffle(q.ch).map(c=>`<button class="choice" data-v="${c}">${fmt(c)}</button>`).join("")}</div>`;
+  }else if(q.k==="frac"){
+    body=`<div class="inrow"><span class="fracin"><input class="box" id="inN" inputmode="numeric" autocomplete="off" aria-label="מונה"><hr><input class="box" id="inD" inputmode="numeric" autocomplete="off" aria-label="מכנה"></span></div>`;
+  }else{
+    body=`<div class="inrow"><input class="box" id="inX" inputmode="numeric" autocomplete="off" aria-label="התשובה"></div>`;
+  }
+  view.innerHTML=`<section class="wrap" style="gap:16px">
+    <div class="qhead"><button class="linkbtn" id="back">→ לכל השלבים</button><span class="where">שלב ${L+1} · שאלה ${I+1} מתוך 10</span></div>
+    <div class="dots" aria-hidden="true">${dots}</div>
+    <details class="lesson" ${I===0?"open":""}><summary>תזכורת: ${Lv.name}</summary><p>${fmt(Lv.lesson)}</p></details>
+    <div class="card">
+      <p class="qtext">${fmt(q.t)}</p>
+      ${q.e?`<div class="expr">${fmt(q.e)}</div>`:""}
+      ${q.p?`<div class="pic">${pic(q.p)}</div>`:""}
+      ${body}
+      <div id="fb"></div>
+      <div class="actions"><button class="btn" id="go" ${q.k==="mc"?"disabled":""}>בדיקה</button></div>
+    </div></section>`;
+  $("#back").onclick=home;
+  if(q.k==="mc"){
+    view.querySelectorAll(".choice").forEach(b=>b.onclick=()=>{
+      if(finished)return;
+      view.querySelectorAll(".choice").forEach(x=>x.classList.remove("sel","wrong"));
+      b.classList.add("sel");sel=b.dataset.v;$("#go").disabled=false;
+    });
+  }else{
+    const ins=view.querySelectorAll(".box");
+    ins.forEach(x=>x.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("#go").click()}}));
+    ins[0].focus({preventScroll:true});
+  }
+  $("#go").onclick=()=>finished?next():check();
+}
+function readAnswer(q){
+  if(q.k==="mc")return sel==null?null:{ok:sel===q.a};
+  if(q.k==="num"){
+    const v=$("#inX").value.trim();if(v==="")return null;
+    return {ok:+v===q.a};
+  }
+  const n=$("#inN").value.trim(),d=$("#inD").value.trim();
+  if(n===""||d==="")return {msg:"כתבי מספר גם למעלה (מונה) וגם למטה (מכנה)."};
+  const N=+n,D=+d;
+  if(!Number.isInteger(N)||!Number.isInteger(D))return {msg:"כתבי מספרים שלמים בלבד."};
+  if(D===0)return {msg:"במכנה אסור לכתוב 0."};
+  const eq=N*q.a[1]===q.a[0]*D;
+  if(eq&&q.s&&gcd(N,D)!==1)return {msg:"השבר נכון, אבל אפשר לצמצם אותו עוד. נסי שוב."};
+  return {ok:eq,notSimple:eq&&gcd(N,D)!==1};
+}
+function check(){
+  const q=LEVELS[L].qs[I],r=readAnswer(q),fb=$("#fb");
+  if(!r)return;
+  if(r.msg){fb.innerHTML=`<div class="fb info pop">${r.msg}</div>`;return}
+  tries++;
+  if(r.ok){
+    prog[qid(L,I)]=tries===1?1:2;save();
+    const praise=pickFrom(tries===1?PRAISE:PRAISE_RETRY);
+    playRec("correct");
+    fb.innerHTML=`<div class="fb good pop"><strong>${fmt(praise)}</strong><p>${fmt(q.ex)}${r.notSimple?" (התשובה שלך נכונה, וכדאי להתרגל לצמצם עד הסוף.)":""}</p></div>`;
+    markChoices(q);done();
+  }else if(tries===1){
+    fb.innerHTML=`<div class="fb bad pop"><strong>${pickFrom(TRY_AGAIN)}</strong><p>רמז: ${fmt(LEVELS[L].tip)}</p></div>`;
+    if(q.k==="mc")view.querySelector(".choice.sel")?.classList.add("wrong");
+  }else{
+    prog[qid(L,I)]=3;save();
+    fb.innerHTML=`<div class="fb info pop"><strong>התשובה הנכונה: <span style="font-family:var(--body)">${fmt(q.k==="mc"?q.a:q.k==="num"?String(q.a):`[${q.a[0]}/${q.a[1]}]`)}</span></strong><p>${fmt(q.ex)}</p></div>`;
+    markChoices(q);done();
+  }
+}
+function markChoices(q){
+  if(q.k!=="mc")return;
+  view.querySelectorAll(".choice").forEach(b=>{b.disabled=true;if(b.dataset.v===q.a)b.classList.add("right")});
+}
+function done(){
+  finished=true;
+  view.querySelectorAll(".box").forEach(x=>x.disabled=true);
+  const g=$("#go");g.textContent=I<9?"לשאלה הבאה ←":"לסיכום השלב";g.focus({preventScroll:true});
+  updateTotal();
+}
+function next(){
+  if(I<9){I++;showQ();return}
+  result();
+}
+function result(){
+  updateTotal();
+  const f=lvlFirst(L),s=starsFor(L),last=L===LEVELS.length-1;
+  const msg=s===3?"מושלם, גאיה! את שולטת בזה, ואבי שמח בטירוף.":s===2?"עבודה טובה מאוד, גאיה. אבי גאה בך.":s===1?"התחלה טובה, גאיה. אפשר לחזור על השלב כדי לחזק, ואבי מאמין בך.":"זה בסדר, גאיה. כדאי לקרוא שוב את התזכורת ולנסות את השלב מחדש. אבי בטוח שתצליחי.";
+  const allDone=Object.keys(prog).length===100;
+  playRec(allDone&&RECORDINGS.finale.length?"finale":"levelDone");
+  view.innerHTML=`<div class="card result pop">
+    <h2>כל הכבוד גאיה! סיימת את שלב ${L+1}: ${LEVELS[L].name}</h2>
+    <div class="big">${starHTML(s)}</div>
+    <p>${f} מתוך 10 נכונות בניסיון הראשון. ${msg}</p>
+    ${allDone?`<p><b>גאיה דור, סיימת את כל 100 השאלות של מסע השברים! אבי כל כך גאה בך. כל הכבוד!</b></p>`:""}
+    <div class="actions" style="justify-content:center">
+      ${last?"":`<button class="btn" id="nx">לשלב ${L+2} ←</button>`}
+      <button class="btn ghost" id="again">לנסות שוב את השלב</button>
+      <button class="btn ghost" id="map">לכל השלבים</button>
+    </div></div>`;
+  $("#nx")&&($("#nx").onclick=()=>startLevel(L+1));
+  $("#again").onclick=()=>{LEVELS[L].qs.forEach((_,i)=>delete prog[qid(L,i)]);save();startLevel(L)};
+  $("#map").onclick=home;
+}
+home();
+</script>
+</body>
+</html>
