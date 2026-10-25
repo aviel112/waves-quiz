@@ -167,31 +167,63 @@ const LEVELS = [
 {name:"שארית בסוף", ex:[79,6],
  lesson:"כשאין עוד ספרות להוריד ועדיין נשאר משהו, זאת השארית. תמיד אפשר לבדוק: <b>מנה × מחלק + שארית</b> צריך לצאת בדיוק המחולק.",
  qs:[[47,3],[59,4],[83,6],[77,5],[94,8],[65,4],[89,7],[71,3],[58,5],
-     {D:97,d:6,t:"יש 97 סוכריות, ומחלקים אותן שווה בשווה בין 6 ילדים. כמה סוכריות מקבל כל ילד, וכמה נשארות?"}]},
+     {D:97,d:6,tpl:(D,d)=>`יש ${D} סוכריות, ומחלקים אותן שווה בשווה בין ${d} ילדים. כמה סוכריות מקבל כל ילד, וכמה נשארות?`}]},
 {name:"תלת־ספרתי", ex:[538,2],
  lesson:"מספר תלת־ספרתי עובד בדיוק אותו דבר: חלק, כפול, חסר, הורד, ושוב מההתחלה. פשוט יש יותר סיבובים. כשהמחלק נכנס כבר בספרה הראשונה, גם בתשובה יהיו 3 ספרות.",
  qs:[[486,2],[645,5],[852,4],[936,3],[774,6],[896,7],[984,8],[765,5],[714,6],
-     {D:856,d:4,t:"בספרייה יש 856 ספרים, ומסדרים אותם שווה בשווה על 4 מדפים. כמה ספרים יהיו על כל מדף?"}]},
+     {D:856,d:4,tpl:(D,d)=>`בספרייה יש ${D} ספרים, ומסדרים אותם שווה בשווה על ${d} מדפים. כמה ספרים יהיו על כל מדף?`}]},
 {name:"כשהספרה הראשונה קטנה", ex:[216,6],
  lesson:"ב־<bdi class=m>156 ÷ 4</bdi> הספרה הראשונה היא 1, ו־4 לא נכנס ב־1. אז לוקחים שתי ספרות: 15. במקרה כזה בתשובה יהיו רק 2 ספרות.",
  qs:[[156,4],[245,7],[312,8],[198,6],[432,9],[215,5],[364,7],[279,9],[157,6],
-     {D:184,d:4,t:"184 ילדים מתחלקים לקבוצות של 4. כמה קבוצות יהיו?"}]},
+     {D:184,d:4,tpl:(D,d)=>`${D} ילדים מתחלקים לקבוצות של ${d}. כמה קבוצות יהיו?`}]},
 {name:"זהירות, אפסים!", ex:[624,3],
  lesson:"אם אחרי שהורדנו ספרה המחלק לא נכנס במספר, כותבים <b>0</b> בתשובה ומורידים עוד ספרה. אסור לדלג על ה־0! ב־<bdi class=m>618 ÷ 3</bdi> התשובה היא 206, ולא 26.",
  qs:[[618,3],[824,4],[535,5],[912,3],[840,4],[721,7],[437,4],[803,8],[925,9],
-     {D:650,d:6,t:"אופה הכינה 650 עוגיות ואורזת אותן בקופסאות של 6. כמה קופסאות מלאות יהיו, וכמה עוגיות יישארו בחוץ?"}]},
+     {D:650,d:6,tpl:(D,d)=>`אופה הכינה ${D} עוגיות ואורזת אותן בקופסאות של ${d}. כמה קופסאות מלאות יהיו, וכמה עוגיות יישארו בחוץ?`}]},
 {name:"ארבע ספרות", ex:[2468,4],
  lesson:"אין כאן שום דבר חדש, רק עוד סיבובים של חלק, כפול, חסר, הורד. עבדי לאט ובסדר, ושימי לב לאפסים.",
  qs:[[1236,3],[4872,6],[2345,5],[7524,4],[3528,7],[6125,8],[9081,9],[5632,8],[8765,4],
-     {D:1458,d:6,t:"במשך 6 ימים נמכרו 1458 כרטיסים להופעה, אותו מספר בכל יום. כמה כרטיסים נמכרו בכל יום?"}]},
+     {D:1458,d:6,tpl:(D,d)=>`במשך ${d} ימים נמכרו ${D} כרטיסים להופעה, אותו מספר בכל יום. כמה כרטיסים נמכרו בכל יום?`}]},
 {name:"מחלק דו־ספרתי", ex:[336,14],
  lesson:"כשהמחלק דו־ספרתי, בצעד \"חלק\" צריך להעריך. כמה פעמים 14 נכנס ב־33? מנסים: <bdi class=m>2 × 14 = 28</bdi>, ו־<bdi class=m>3 × 14 = 42</bdi> כבר גדול מדי, אז 2. כדאי לכתוב בצד דף את הכפולות של המחלק.",
  qs:[[144,12],[252,12],[375,15],[432,24],[598,13],[925,25],[784,16],[500,12],
-     {D:456,d:19,t:"בבית ספר יש 456 תלמידים ב־19 כיתות שוות. כמה תלמידים יש בכל כיתה?"},
-     {D:230,d:50,t:"230 ילדים יוצאים לטיול, ובכל אוטובוס יש 50 מקומות. כמה אוטובוסים צריך להזמין כדי שכולם ייסעו?",ans:5,label:"כמה אוטובוסים?",
-      note:"<bdi class=m>230 ÷ 50 = 4</bdi> ושארית 30. ארבעה אוטובוסים מתמלאים, אבל 30 ילדים עדיין בלי מקום, אז צריך עוד אוטובוס אחד: <b>5 אוטובוסים</b>."}]}
+     {D:456,d:19,tpl:(D,d)=>`בבית ספר יש ${D} תלמידים ב־${d} כיתות שוות. כמה תלמידים יש בכל כיתה?`},
+     {D:230,d:50,bus:true,label:"כמה אוטובוסים?",tpl:(D,d)=>`${D} ילדים יוצאים לטיול, ובכל אוטובוס יש ${d} מקומות. כמה אוטובוסים צריך להזמין כדי שכולם ייסעו?`}]}
 ];
-LEVELS.forEach(L=>L.qs=L.qs.map(q=>Array.isArray(q)?{D:q[0],d:q[1]}:q));
+// fill in the story text, and the answer + explanation for the bus question
+function prepare(q){
+  if(q.tpl)q.t=q.tpl(q.D,q.d);
+  if(q.bus){const Q=Math.floor(q.D/q.d),R=q.D%q.d;q.ans=Q+1;
+    q.note=`<bdi class=m>${q.D} ÷ ${q.d} = ${Q}</bdi> ושארית ${R}. ${Q} אוטובוסים מתמלאים, אבל ${R} ילדים עדיין בלי מקום, אז צריך עוד אוטובוס אחד: <b>${Q+1} אוטובוסים</b>.`}
+  return q;
+}
+LEVELS.forEach(L=>L.qs=L.qs.map(q=>prepare(Array.isArray(q)?{D:q[0],d:q[1]}:q)));
+
+/* ---------- similar exercise (same kind, new numbers) after a miss ---------- */
+function kindOf(D,d){
+  const s=String(D);let end=0,cur=+s[0];
+  while(cur<d&&end<s.length-1){end++;cur=cur*10+ +s[end]}
+  const takeFirst=end;
+  let clean=true;
+  while(end<s.length-1){if(cur%d)clean=false;end++;cur=(cur%d)*10+ +s[end]}
+  return [s.length,String(d).length,takeFirst,D%d>0,String(Math.floor(D/d)).includes("0"),clean].join("|");
+}
+const rand=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+function similar(orig,used){
+  const base={tpl:orig.tpl,bus:orig.bus,label:orig.label};
+  if(orig.bus){
+    for(let i=0;i<5000;i++){const d=[30,35,40,45,50,55,60][rand(0,6)],D=rand(110,420);
+      if(D%d&&!used.has(D+"/"+d))return prepare({...base,D,d})}
+  }
+  const want=kindOf(orig.D,orig.d),n=String(orig.D).length;
+  for(let i=0;i<40000;i++){
+    const d=orig.d<10?rand(2,9):rand(Math.max(11,orig.d-8),Math.min(29,orig.d+8));
+    const D=rand(10**(n-1),10**n-1);
+    if(used.has(D+"/"+d)||kindOf(D,d)!==want)continue;
+    return prepare({...base,D,d});
+  }
+  return prepare({...base,D:orig.D,d:orig.d});
+}
 
 /* ---------- messages for Gaia ---------- */
 const PRAISE = [
@@ -432,6 +464,12 @@ function home(){
 
 /* ---------- quiz ---------- */
 let L=0,I=0,tries=0,finished=false,demo=null;
+let cq=null;          // the exercise on screen: the level's own, or a similar one after a miss
+let alt=0;            // how many similar exercises were given for this one
+let failed=false;     // the exercise on screen was not solved
+let used=new Set();
+const MAX_ALT=3;
+const ALT_PRAISE=["עכשיו זה יושב! אבי שמח, גאיה.","רואה? למדת את זה! כל הכבוד גאיה.","תיקון של אלופה! אבי גאה בך.","יש! הפעם הצלחת, ואבי מוחא כפיים."];
 function startLevel(l){
   L=l;
   const first=LEVELS[l].qs.findIndex((_,i)=>!prog[qid(l,i)]);
@@ -439,10 +477,12 @@ function startLevel(l){
   if(first===-1){LEVELS[l].qs.forEach((_,i)=>delete prog[qid(l,i)]);save()}
   showQ();
 }
-function showQ(){
+function showQ(){alt=0;used=new Set();cq=LEVELS[L].qs[I];render()}
+function render(){
   stopAll();updateTotal();
-  tries=0;finished=false;
-  const Lv=LEVELS[L],q=Lv.qs[I];
+  tries=0;finished=false;failed=false;
+  const Lv=LEVELS[L],q=cq;
+  used.add(q.D+"/"+q.d);
   demo=buildDemo(q.D,q.d);
   const dots=Lv.qs.map((_,i)=>`<i class="${prog[qid(L,i)]?"r"+prog[qid(L,i)]:""} ${i===I?"now":""}"></i>`).join("");
   const inputs=q.ans!=null
@@ -450,18 +490,19 @@ function showQ(){
     :`<label class="fld"><span>מנה (התשובה)</span><input class="box" id="inQ" inputmode="numeric" autocomplete="off"></label>
       <label class="fld"><span>שארית (אם אין, השאירי ריק)</span><input class="box sm" id="inR" inputmode="numeric" autocomplete="off"></label>`;
   view.innerHTML=`<section class="wrap" style="gap:16px">
-    <div class="qhead"><button class="linkbtn" id="back">→ לכל השלבים</button><span class="where">שלב ${L+1} · תרגיל ${I+1} מתוך 10</span></div>
+    <div class="qhead"><button class="linkbtn" id="back">→ לכל השלבים</button><span class="where">שלב ${L+1} · תרגיל ${I+1} מתוך 10${alt?" · תרגיל דומה":""}</span></div>
     <div class="dots" aria-hidden="true">${dots}</div>
-    <details class="lesson" id="lesson" ${I===0?"open":""}><summary>תזכורת והדגמה: ${Lv.name}</summary>
+    <details class="lesson" id="lesson" ${I===0&&!alt?"open":""}><summary>תזכורת והדגמה: ${Lv.name}</summary>
       <div class="body"><p>${Lv.lesson}</p><p>הנה דוגמה: ${m(`${Lv.ex[0]} ÷ ${Lv.ex[1]}`)}</p><div id="lessonDemo"></div></div></details>
     <div class="card">
+      ${alt?`<div class="fb info"><strong>${alt===1?"תרגיל דומה במקום הקודם":"עוד תרגיל דומה"}</strong><p>${alt===1?"בואי ננסה תרגיל מאותו סוג, עם מה שראית עכשיו בהדגמה.":"לאט ובסדר: חלק, כפול, חסר, הורד. את יכולה!"}</p></div>`:""}
       <p class="qtext">${q.t||"פתרי בחילוק ארוך:"}</p>
       ${q.t?"":`<div class="expr">${q.D} ÷ ${q.d} = ?</div>`}
       <div class="boardwrap">${renderBoard(demo,0,false)}</div>
       <p class="paper">כדאי לפתור על דף, ואז לכתוב כאן את התשובה.</p>
       <div class="ans">${inputs}</div>
       <div id="fb"></div>
-      <div class="actions"><button class="btn" id="go">בדיקה</button><button class="btn ghost" id="show" hidden>תראי לי את הפתרון</button></div>
+      <div class="actions"><button class="btn" id="go">בדיקה</button><button class="btn ghost" id="show" hidden>תראי לי את הפתרון</button><button class="linkbtn" id="skip" hidden>לדלג לתרגיל הבא</button></div>
       <div id="sol"></div>
     </div></section>`;
   $("#back").onclick=home;
@@ -472,11 +513,17 @@ function showQ(){
   view.querySelectorAll(".box").forEach(x=>x.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("#go").click()}}));
   view.querySelector(".box").focus({preventScroll:true});
   $("#go").onclick=()=>finished?next():check();
-  $("#show").onclick=()=>{prog[qid(L,I)]=3;save();reveal("info",pickFrom(SHOWN))};
+  $("#show").onclick=missed;
+  $("#skip").onclick=advance;
+}
+function missed(){
+  if(!alt){prog[qid(L,I)]=3;save()}
+  failed=true;
+  reveal("info",pickFrom(SHOWN));
 }
 const num=v=>{v=v.trim();return v===""?null:/^\d+$/.test(v)?+v:NaN};
 function check(){
-  const q=LEVELS[L].qs[I],fb=$("#fb"),{D,d}=q,Q=Math.floor(D/d),R=D%d;
+  const q=cq,fb=$("#fb"),{D,d}=q,Q=Math.floor(D/d),R=D%d;
   let ok,hint;
   if(q.ans!=null){
     const a=num($("#inA").value);
@@ -495,25 +542,39 @@ function check(){
     else{const v=qq*d+rr;hint=`בואי נבדוק: ${m(`${qq} × ${d}${rr?` + ${rr}`:""} = ${v}`)}, וזה ${v>D?"יותר":"פחות"} מ־${m(D)}. כלומר המנה ${v>D?"גדולה":"קטנה"} מדי.`}
   }
   tries++;
-  if(ok){prog[qid(L,I)]=tries===1?1:2;save();playRec("correct");reveal("good",pickFrom(tries===1?PRAISE:PRAISE_RETRY))}
+  if(ok){
+    // a similar exercise solved turns the original miss into "corrected"
+    if(alt){if(prog[qid(L,I)]===3)prog[qid(L,I)]=2}else prog[qid(L,I)]=tries===1?1:2;
+    save();playRec("correct");
+    reveal("good",pickFrom(alt?ALT_PRAISE:tries===1?PRAISE:PRAISE_RETRY));
+  }
   else if(tries===1){
     fb.innerHTML=`<div class="fb bad pop"><strong>${pickFrom(TRY_AGAIN)}</strong><p>רמז: ${hint}</p></div>`;
     $("#show").hidden=false;
-  }else{prog[qid(L,I)]=3;save();reveal("info",pickFrom(SHOWN))}
+  }else missed();
 }
 function reveal(kind,title){
   finished=true;
-  const q=LEVELS[L].qs[I];
+  const q=cq;
   const answer=q.ans!=null?`${q.ans}`:`${demo.Q}${demo.R?`, שארית ${demo.R}`:""}`;
   $("#fb").innerHTML=`<div class="fb ${kind} pop"><strong>${title}</strong><p>${kind==="good"?"":"התשובה הנכונה: "}${kind==="good"?`התשובה ${m(answer)} נכונה.`:m(answer)}${q.note?" "+q.note:""}</p></div>`;
   $("#sol").innerHTML=`<div class="solution"><h3>ככה פותרים את ${m(`${q.D} ÷ ${q.d}`)}, שלב אחרי שלב</h3><div id="solDemo"></div></div>`;
   makePlayer($("#solDemo"),demo,{autoplay:true});
   view.querySelectorAll(".box").forEach(x=>x.disabled=true);
   $("#show").hidden=true;
-  const g=$("#go");g.textContent=I<9?"לתרגיל הבא ←":"לסיכום השלב";
+  const g=$("#go");
+  if(failed&&alt<MAX_ALT){
+    g.textContent=alt?"לעוד תרגיל דומה ←":"לתרגיל דומה ←";
+    $("#skip").hidden=false;
+    $("#sol .solution").insertAdjacentHTML("beforeend",`<p class="paper">אחרי שתצפי בהדגמה, יחכה לך תרגיל דומה כדי לתרגל.</p>`);
+  }else g.textContent=I<9?"לתרגיל הבא ←":"לסיכום השלב";
   updateTotal();
 }
-function next(){if(I<9){I++;showQ();window.scrollTo(0,0);return}result()}
+function next(){
+  if(failed&&alt<MAX_ALT){alt++;cq=similar(LEVELS[L].qs[I],used);render();window.scrollTo(0,0);return}
+  advance();
+}
+function advance(){if(I<9){I++;showQ();window.scrollTo(0,0);return}result()}
 function result(){
   stopAll();updateTotal();
   const f=lvlFirst(L),s=starsFor(L),last=L===LEVELS.length-1,allDone=Object.keys(prog).length===100;
