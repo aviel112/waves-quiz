@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>המבחן של גאיה</title>
+<meta name="theme-color" content="#0E4A45">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="מבחן">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Secular+One&family=Varela+Round&display=swap">
+<style>
+/* Layout: one centered column. Start screen, then one question at a time, then a report by topic */
+:root{
+  --bg:#EDF5F3; --surface:#FFFFFF; --surface2:#D7E8E4; --ink:#13282A; --muted:#55706F;
+  --accent:#0F7A70; --accent-ink:#FFFFFF; --hl:#FFE29A; --gold:#E08A1E; --berry:#C93A60; --line:#C3DAD5;
+  --good-bg:#DDF3EE; --bad-bg:#FBE3EA; --mid-bg:#FDF0DC;
+  --display:"Secular One","Varela Round",system-ui,sans-serif;
+  --body:"Varela Round",system-ui,"Segoe UI",Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0F1B1C; --surface:#172728; --surface2:#24393A; --ink:#E5F0EE; --muted:#97B0AD;
+  --accent:#4FC7B9; --accent-ink:#0B1A19; --hl:#6B5418; --gold:#F2A84A; --berry:#F0728F; --line:#2F4847;
+  --good-bg:#173A36; --bad-bg:#3F1F2A; --mid-bg:#3B2D17; color-scheme:dark}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:max(24px,env(safe-area-inset-top,0px)) max(48px,env(safe-area-inset-bottom,0px))}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;line-height:1.2}
+h1{font-size:2.1rem} h2{font-size:1.45rem} h3{font-size:1.15rem}
+p{margin:0}
+button{font:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+bdi.m{direction:ltr;unicode-bidi:isolate;white-space:nowrap;font-variant-numeric:tabular-nums}
+.sub{color:var(--muted)}
+.bar{height:12px;border-radius:99px;background:var(--surface2);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .4s}
+.card{background:var(--surface);border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:18px;box-shadow:0 2px 0 var(--line)}
+.topics{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px 16px;margin:0;padding:0;list-style:none;font-size:.95rem}
+.topics li{display:flex;gap:8px;align-items:baseline}
+.topics li::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent);flex:none;transform:translateY(-2px)}
+.sec{font-family:var(--display);color:var(--accent);font-size:1.05rem}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;font-size:.95rem}
+.chip{display:inline-block;padding:2px 12px;border-radius:99px;background:var(--surface2);color:var(--ink);font-size:.85rem}
+.chip.alt{background:var(--mid-bg);color:var(--ink)}
+.where{color:var(--muted);font-variant-numeric:tabular-nums}
+.qtext{font-size:1.2rem;line-height:1.7}
+.expr{direction:ltr;unicode-bidi:isolate;text-align:center;font-size:1.9rem;display:flex;justify-content:center;align-items:center;gap:.3em;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+.pic{display:flex;justify-content:center}
+.pic svg{max-width:100%;height:auto;direction:ltr}
+.pic .ln{stroke:var(--ink);stroke-width:2.5;fill:none}
+.pic .shape{stroke:var(--ink);stroke-width:2.5;fill:var(--surface2)}
+.pic .dash{stroke:var(--accent);stroke-width:3;stroke-dasharray:7 5;fill:none}
+.pic .thin{stroke:var(--muted);stroke-width:2;fill:none}
+.pic .lbl{fill:var(--ink);font-size:17px;font-family:var(--body)}
+.pic .lbl.acc{fill:var(--accent);font-weight:700}
+.pic .pt{fill:var(--gold)}
+.mixed{display:inline-flex;align-items:center;gap:.12em;direction:ltr;unicode-bidi:isolate;vertical-align:middle}
+.frac{display:inline-flex;flex-direction:column;align-items:center;line-height:1.15;font-size:.9em}
+.frac>span{padding:0 .2em}
+.frac>span:first-child{border-bottom:2px solid currentColor}
+.qm{display:inline-block;min-width:1.3em;border:2px dashed var(--gold);border-radius:6px;color:var(--gold);text-align:center;line-height:1.15}
+.choices{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.choice{background:var(--bg);border:2px solid var(--line);border-radius:14px;padding:12px;font-size:1.3rem;color:var(--ink);min-height:66px;display:flex;align-items:center;justify-content:center;text-align:center}
+.choice.wide{grid-column:1 / -1}
+.choice:hover:not(:disabled){border-color:var(--accent)}
+.choice.sel{border-color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent);background:var(--surface)}
+.choice.right{border-color:var(--accent);background:var(--good-bg)}
+.choice.wrong{border-color:var(--berry);background:var(--bad-bg)}
+.inrow{display:flex;justify-content:center;align-items:center;gap:14px;flex-wrap:wrap}
+.box{width:170px;font:inherit;font-size:1.6rem;text-align:center;padding:6px;border:2px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-variant-numeric:tabular-nums;direction:ltr}
+.box.sm{width:84px}
+.box:focus{border-color:var(--accent);outline:none}
+.unit{font-size:1.2rem;color:var(--muted)}
+.fracin{display:inline-flex;align-items:center;gap:10px;direction:ltr}
+.fracin .stack{display:inline-flex;flex-direction:column;align-items:center;gap:6px}
+.fracin hr{width:100%;border:none;border-top:3px solid var(--ink);margin:0}
+.fld{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);font-size:.85rem}
+.actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.btn{background:var(--accent);color:var(--accent-ink);border:none;border-radius:12px;padding:12px 26px;font-family:var(--display);font-size:1.1rem}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line)}
+.linkbtn{background:none;border:none;color:var(--muted);text-decoration:underline;padding:4px}
+.fb{border-radius:14px;padding:14px 18px;display:flex;flex-direction:column;gap:6px;font-size:1.05rem}
+.fb.good{background:var(--good-bg)} .fb.bad{background:var(--bad-bg)} .fb.info{background:var(--surface2)}
+.fb strong{font-family:var(--display);font-weight:400;font-size:1.2rem}
+.score{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.score .big{font-family:var(--display);font-size:3.4rem;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+.report{display:flex;flex-direction:column;gap:14px}
+.rrow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}
+.st{padding:2px 12px;border-radius:99px;font-size:.85rem;white-space:nowrap}
+.st.first{background:var(--good-bg)} .st.fixed{background:var(--mid-bg)} .st.miss{background:var(--bad-bg)} .st.none{background:var(--surface2);color:var(--muted)}
+.foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:.9rem}
+.foot a,.card a{color:var(--accent)}
+.pop{animation:pop .35s ease-out}
+@keyframes pop{0%{transform:scale(.97)}60%{transform:scale(1.02)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.pop{animation:none}.bar>i{transition:none}}
+@media (max-width:440px){h1{font-size:1.75rem}.card{padding:18px}.expr{font-size:1.5rem}.choice{font-size:1.1rem}.box{width:150px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>המבחן של גאיה</h1>
+    <p class="sub">מבחן תרגול לקראת מבחן תחילת השנה במתמטיקה, כיתה ו׳</p>
+  </header>
+  <main id="view"></main>
+</div>
+
+<script>
+/* ---------- helpers ---------- */
+const N=x=>x.toLocaleString("en-US");
+const m=x=>`<bdi class="m">${x}</bdi>`;
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b)[a,b]=[b,a%b];return a};
+const r3=x=>Math.round(x*1000)/1000;
+function fmt(s){
+  return String(s).replace(/(\d+)?\[(\d+)\/(\d+)\]/g,(_,w,n,d)=>`<span class="mixed">${w?`<span>${w}</span>`:""}<span class="frac"><span>${n}</span><span>${d}</span></span></span>`)
+    .replace(/☐/g,'<span class="qm">?</span>');
+}
+const mixedStr=(n,d)=>{const w=Math.floor(n/d),r=n%d;return r?`${w?w:""}[${r}/${d}]`:`${w}`};
+
+/* ---------- pictures ---------- */
+function numberLine(from,to,parts,mark){
+  const x0=24,x1=316,y=58,X=i=>x0+(x1-x0)*i/parts;
+  let s=`<svg viewBox="0 0 340 100" width="340" role="img" aria-label="ישר מספרים מ־${from} עד ${to} מחולק ל־${parts} חלקים, ונקודה A מסומנת"><line class="ln" x1="${x0-12}" y1="${y}" x2="${x1+12}" y2="${y}"/>`;
+  for(let i=0;i<=parts;i++){
+    const whole=((to-from)*i)%parts===0;
+    s+=`<line class="ln" x1="${X(i)}" y1="${y-(whole?11:8)}" x2="${X(i)}" y2="${y+(whole?11:8)}"/>`;
+    if(whole)s+=`<text class="lbl" x="${X(i)}" y="${y+32}" text-anchor="middle">${from+(to-from)*i/parts}</text>`;
+  }
+  return s+`<circle class="pt" cx="${X(mark)}" cy="${y}" r="7"/><text class="lbl acc" x="${X(mark)}" y="${y-20}" text-anchor="middle">A</text></svg>`;
+}
+const PARA_H=`<svg viewBox="0 0 330 200" width="330" role="img" aria-label="מקבילית ABCD עם הקטעים DE ו־DB"><polygon class="shape" points="40,160 240,160 300,50 100,50"/>
+ <line class="thin" x1="100" y1="50" x2="240" y2="160"/><line class="dash" x1="100" y1="50" x2="100" y2="160"/><path class="ln" style="stroke-width:1.8" d="M100,147 h13 v13"/>
+ <text class="lbl" x="30" y="182">A</text><text class="lbl" x="242" y="182">B</text><text class="lbl" x="306" y="50">C</text><text class="lbl" x="88" y="42">D</text><text class="lbl acc" x="94" y="182">E</text></svg>`;
+const TRI_H=`<svg viewBox="0 0 320 200" width="320" role="img" aria-label="משולש ABC עם הקטעים AD ו־AM"><polygon class="shape" points="30,165 290,165 120,30"/>
+ <line class="thin" x1="120" y1="30" x2="170" y2="165"/><line class="dash" x1="120" y1="30" x2="120" y2="165"/><path class="ln" style="stroke-width:1.8" d="M120,152 h13 v13"/>
+ <text class="lbl" x="114" y="22">A</text><text class="lbl" x="14" y="184">B</text><text class="lbl" x="292" y="184">C</text><text class="lbl acc" x="112" y="186">D</text><text class="lbl" x="166" y="186">M</text></svg>`;
+const rectPic=(w,h)=>`<svg viewBox="0 0 330 200" width="330" role="img" aria-label="מלבן"><rect class="shape" x="30" y="30" width="220" height="125"/>
+ <text class="lbl" x="140" y="182" text-anchor="middle">${w}</text><text class="lbl" x="290" y="98" text-anchor="middle">${h}</text></svg>`;
+const PARA_AREA=`<svg viewBox="0 0 340 200" width="340" role="img" aria-label="מקבילית: צלע 10, צלע 7 וגובה 6"><polygon class="shape" points="40,160 240,160 300,50 100,50"/>
+ <line class="dash" x1="100" y1="50" x2="100" y2="160"/><path class="ln" style="stroke-width:1.8" d="M100,147 h13 v13"/>
+ <text class="lbl" x="140" y="184" text-anchor="middle">10 ס״מ</text><text class="lbl" x="305" y="115" text-anchor="middle">7 ס״מ</text><text class="lbl acc" x="140" y="112" text-anchor="middle">6 ס״מ</text></svg>`;
+
+/* ---------- the test: one question per topic, 3 replacements each ---------- */
+const add=(x,y)=>({k:"num",t:"פתרי:",e:`${N(x)} + ${N(y)} = ?`,a:x+y,ex:`מחברים במאונך, ספרה מתחת לספרה, מימין לשמאל, וזוכרים את ההעברות. ${m(`${N(x)} + ${N(y)} = ${N(x+y)}`)}.`});
+const sub=(x,y)=>({k:"num",t:"פתרי:",e:`${N(x)} − ${N(y)} = ?`,a:x-y,ex:`מחסירים במאונך מימין לשמאל. כשהספרה למעלה קטנה מדי, פורטים: לוקחים 1 מהספרה שמשמאל. ${m(`${N(x)} − ${N(y)} = ${N(x-y)}`)}. בדיקה: ${m(`${N(x-y)} + ${N(y)} = ${N(x)}`)}.`});
+const mul=(x,y)=>{const t=Math.floor(y/10)*10,o=y%10;return {k:"num",t:"פתרי:",e:`${N(x)} × ${y} = ?`,a:x*y,
+  ex:y<10?`כופלים כל ספרה ב־${y}, מימין לשמאל, עם העברות: ${m(`${N(x)} × ${y} = ${N(x*y)}`)}.`
+         :`מפרקים את ${y} ל־${t} ו־${o}: ${m(`${N(x)} × ${t} = ${N(x*t)}`)}, ו־${m(`${N(x)} × ${o} = ${N(x*o)}`)}. ביחד: ${m(`${N(x*t)} + ${N(x*o)} = ${N(x*y)}`)}.`}};
+const div=(x,y)=>({k:"num",t:"פתרי בחילוק ארוך:",e:`${N(x)} ÷ ${y} = ?`,a:x/y,ex:`חלק, כפול, חסר, הורד, ספרה אחרי ספרה. התשובה ${m(N(x/y))}. בדיקה: ${m(`${N(x/y)} × ${y} = ${N(x)}`)}. רוצה לתרגל עוד? <a href="../gaia-division/">מסע החילוק הארוך</a>.`});
+const div0=(x,y)=>{const z=String(y).match(/0+$/)[0].length,p=10**z;return {k:"num",t:"פתרי:",e:`${N(x)} ÷ ${N(y)} = ?`,a:x/y,
+  ex:`מורידים מהמחולק ומהמחלק אותו מספר של אפסים (${z===1?"אפס אחד":`${z} אפסים`}): ${m(`${N(x)} ÷ ${N(y)} = ${N(x/p)} ÷ ${y/p} = ${N(x/y)}`)}.`}};
+const order=(e,js,ex)=>({k:"num",t:"פתרי לפי סדר פעולות החשבון:",e,a:Function(`return ${js}`)(),ex});
+const dec=(e,a,ex)=>({k:"num",t:"פתרי:",e,a,ex});
+
+const SECTIONS=[
+{name:"פעולות במספרים טבעיים בתחום המיליון",topics:[
+ {name:"חיבור",pool:[add(345678,254322),add(128459,371286),add(406790,93215),add(257804,642396)]},
+ {name:"חיסור",pool:[sub(700000,256438),sub(1000000,384215),sub(503020,187645),sub(820105,96378)]},
+ {name:"כפל",pool:[mul(2345,6),mul(348,27),mul(1205,34),mul(476,58)]},
+ {name:"חילוק ארוך",pool:[div(7584,6),div(9135,7),div(4368,8),div(25632,9)]},
+ {name:"חילוק בעשרות ובמאות שלמות",pool:[div0(4800,60),div0(36000,400),div0(6300,90),div0(240000,800)]},
+ {name:"סדר פעולות חשבון",pool:[
+  order("48 − 6 × 5 = ?","48-6*5",`קודם כפל: ${m("6 × 5 = 30")}. אחר כך חיסור: ${m("48 − 30 = 18")}.`),
+  order("(36 + 12) ÷ 4 × 2 = ?","(36+12)/4*2",`קודם סוגריים: ${m("36 + 12 = 48")}. כפל וחילוק לפי הסדר: ${m("48 ÷ 4 = 12")}, ואז ${m("12 × 2 = 24")}.`),
+  order("100 − 64 ÷ 8 + 3 × 7 = ?","100-64/8+3*7",`קודם כפל וחילוק: ${m("64 ÷ 8 = 8")} ו־${m("3 × 7 = 21")}. אחר כך חיבור וחיסור לפי הסדר: ${m("100 − 8 + 21 = 113")}.`),
+  order("5 × (18 − 9) − 20 ÷ 4 = ?","5*(18-9)-20/4",`קודם סוגריים: ${m("18 − 9 = 9")}. כפל וחילוק: ${m("5 × 9 = 45")} ו־${m("20 ÷ 4 = 5")}. בסוף: ${m("45 − 5 = 40")}.`)]},
+ {name:"משוואות: השלמת מספרים",pool:[
+  {k:"num",t:"איזה מספר חסר?",e:"4,568 + ☐ = 10,000",a:5432,ex:`מחפשים כמה חסר ל־4,568 כדי להגיע ל־10,000: ${m("☐ = 10,000 − 4,568 = 5,432")}.`},
+  {k:"num",t:"איזה מספר חסר?",e:"☐ − 2,750 = 6,480",a:9230,ex:`אם הורדנו 2,750 ונשארו 6,480, מחזירים אותם: ${m("☐ = 6,480 + 2,750 = 9,230")}.`},
+  {k:"num",t:"איזה מספר חסר?",e:"25 × ☐ = 1,500",a:60,ex:`ההפך של כפל הוא חילוק: ${m("☐ = 1,500 ÷ 25 = 60")}.`},
+  {k:"num",t:"איזה מספר חסר?",e:"☐ ÷ 8 = 125",a:1000,ex:`ההפך של חילוק הוא כפל: ${m("☐ = 125 × 8 = 1,000")}.`}]},
+ {name:"אומדן",pool:[
+  {k:"mc",t:`בלי לחשב בדיוק: לאיזה מספר הכי קרוב ${m("4,987 + 3,012")}?`,ch:["8,000","7,000","9,000","80,000"],a:"8,000",ex:`מעגלים: 4,987 זה בערך 5,000, ו־3,012 זה בערך 3,000. ${m("5,000 + 3,000 = 8,000")}.`},
+  {k:"mc",t:`בלי לחשב בדיוק: בערך כמה זה ${m("498 × 21")}?`,ch:["10,000","1,000","100,000","8,000"],a:"10,000",ex:`מעגלים: 498 זה בערך 500, ו־21 זה בערך 20. ${m("500 × 20 = 10,000")}.`},
+  {k:"mc",t:`בלי לחשב בדיוק: בערך כמה זה ${m("7,190 ÷ 9")}?`,ch:["800","80","8,000","700"],a:"800",ex:`7,190 קרוב ל־7,200, שמתחלק יפה ב־9: ${m("7,200 ÷ 9 = 800")}.`},
+  {k:"mc",t:"דנה קנתה 3 חולצות, כל אחת ב־98 ₪. בערך כמה שילמה?",ch:["300 ₪","200 ₪","3,000 ₪","100 ₪"],a:"300 ₪",ex:`98 זה כמעט 100, ו־${m("3 × 100 = 300")}. היא שילמה קצת פחות מ־300 ₪.`}]},
+ {name:"שאלות מילוליות",pool:[
+  {k:"num",t:"בספרייה היו 12,450 ספרים. השנה הגיעו עוד 3,875 ספרים, ו־1,200 ספרים ישנים נמסרו לבית ספר אחר. כמה ספרים יש בספרייה עכשיו?",a:15125,unit:"ספרים",ex:`קודם מוסיפים: ${m("12,450 + 3,875 = 16,325")}. אחר כך מורידים: ${m("16,325 − 1,200 = 15,125")}.`},
+  {k:"num",t:"באולם הופעות יש 1,260 מקומות, ב־35 שורות שוות. כמה מקומות יש בכל שורה?",a:36,unit:"מקומות",ex:`מחלקים את המקומות לשורות: ${m("1,260 ÷ 35 = 36")}. בדיקה: ${m("36 × 35 = 1,260")}.`},
+  {k:"num",t:"כרטיס למוזיאון עולה 45 ₪. כיתה של 32 תלמידים קנתה כרטיסים לכולם. כמה שילמו בסך הכול?",a:1440,unit:"₪",ex:`${m("45 × 32")}: ${m("45 × 30 = 1,350")}, ועוד ${m("45 × 2 = 90")}. ביחד ${m("1,440")} ₪.`},
+  {k:"num",t:"מיכל חוסכת 125 ₪ בכל חודש. אחרי כמה חודשים יהיו לה 1,500 ₪?",a:12,unit:"חודשים",ex:`${m("1,500 ÷ 125 = 12")}. בדיקה: ${m("125 × 12 = 1,500")}.`}]}
+]},
+{name:"שברים, מספרים מעורבים ומספרים עשרוניים",topics:[
+ {name:"חיבור וחיסור שברים ומספרים מעורבים",pool:[
+  {k:"frac",t:"פתרי:",e:"1[2/3] + 2[1/4] = ?",a:[47,12],ex:`שלמים: ${m("1 + 2 = 3")}. שברים, במכנה משותף 12: [8/12] + [3/12] = [11/12]. ביחד: 3[11/12].`},
+  {k:"frac",t:"פתרי:",e:"4[1/2] − 1[3/4] = ?",a:[11,4],ex:`[1/2] קטן מ־[3/4], אז פורטים שלם אחד: 4[1/2] = 3[6/4]. עכשיו: 3[6/4] − 1[3/4] = 2[3/4].`},
+  {k:"frac",t:"פתרי:",e:"[5/6] + [3/8] = ?",a:[29,24],ex:`מכנה משותף 24: [20/24] + [9/24] = [29/24] = 1[5/24].`},
+  {k:"frac",t:"פתרי:",e:"3 − 1[2/5] = ?",a:[8,5],ex:`כותבים את 3 כ־2[5/5]. אז 2[5/5] − 1[2/5] = 1[3/5].`}]},
+ {name:"שברים על ישר המספרים",pool:[
+  {k:"mc",t:"איזה מספר מסומן בנקודה A?",pic:numberLine(0,1,8,5),ch:["[5/8]","[5/6]","[3/8]","[4/8]"],a:"[5/8]",ex:`בין 0 ל־1 יש 8 חלקים שווים, אז כל חלק הוא [1/8]. A נמצאת אחרי 5 חלקים: [5/8].`},
+  {k:"mc",t:"איזה מספר מסומן בנקודה A?",pic:numberLine(0,2,6,4),ch:["1[1/3]","[4/6]","1[1/4]","[2/3]"],a:"1[1/3]",ex:`בין 0 ל־2 יש 6 חלקים, כלומר 3 חלקים בכל שלם. כל חלק הוא [1/3]. A אחרי 4 חלקים: [4/3] = 1[1/3].`},
+  {k:"mc",t:"איזה מספר מסומן בנקודה A?",pic:numberLine(0,1,10,7),ch:["0.7","0.07","7","0.8"],a:"0.7",ex:`בין 0 ל־1 יש 10 חלקים, אז כל חלק הוא עשירית, ${m("0.1")}. A אחרי 7 חלקים: ${m("0.7")}.`},
+  {k:"mc",t:"איזה מספר מסומן בנקודה A?",pic:numberLine(1,2,4,3),ch:["1[3/4]","[3/4]","1[1/4]","2[1/4]"],a:"1[3/4]",ex:`בין 1 ל־2 יש 4 חלקים, אז כל חלק הוא [1/4]. A נמצאת 3 חלקים אחרי 1: 1[3/4].`}]},
+ {name:"השוואת שברים",pool:[
+  {k:"mc",t:"איזה שבר גדול יותר?",ch:["[5/8]","[3/5]"],a:"[5/8]",ex:`מכנה משותף 40: [5/8] = [25/40] ו־[3/5] = [24/40]. לכן [5/8] גדול יותר.`},
+  {k:"mc",t:"איזה שבר גדול יותר?",ch:["[4/5]","[7/9]"],a:"[4/5]",ex:`מכנה משותף 45: [4/5] = [36/45] ו־[7/9] = [35/45]. לכן [4/5] גדול יותר.`},
+  {k:"mc",ltr:true,t:"איזה סימן מתאים במקום ה־☐?",e:"[2/3] ☐ [8/12]",ch:[">","<","="],a:"=",ex:`מצמצמים את [8/12] ב־4 ומקבלים [2/3]. השברים שווים.`},
+  {k:"mc",t:"איזה שבר גדול יותר?",ch:["[11/12]","[9/10]"],a:"[11/12]",ex:`לשניהם חסר חלק אחד עד השלם: ל־[11/12] חסר [1/12], ול־[9/10] חסר [1/10]. [1/12] קטן יותר, אז [11/12] קרוב יותר לשלם וגדול יותר.`}]},
+ {name:"השבר כחלק מכמות",pool:[
+  {k:"num",t:"בכיתה 28 תלמידים, ו־[3/4] מהם יצאו לטיול. כמה תלמידים יצאו לטיול?",a:21,unit:"תלמידים",ex:`[1/4] מ־28 זה ${m("28 ÷ 4 = 7")}. [3/4] זה ${m("7 × 3 = 21")}.`},
+  {k:"num",t:"לנועה היו 60 ₪. היא הוציאה [2/5] מהכסף על ספר. כמה כסף נשאר לה?",a:36,unit:"₪",ex:`[1/5] מ־60 זה 12. על הספר הוציאה [2/5], כלומר 24 ₪. נשאר: ${m("60 − 24 = 36")} ₪.`},
+  {k:"num",t:"[2/3] מהעוגה הם 8 פרוסות. מכמה פרוסות בנויה העוגה כולה?",a:12,unit:"פרוסות",ex:`אם [2/3] הם 8 פרוסות, אז [1/3] הוא 4 פרוסות. העוגה כולה היא [3/3]: ${m("4 × 3 = 12")}.`},
+  {k:"num",t:"בסל יש 45 פירות. [1/5] מהם תפוחים ו־[1/3] מהם בננות. כמה תפוחים ובננות יש ביחד?",a:24,unit:"פירות",ex:`תפוחים: ${m("45 ÷ 5 = 9")}. בננות: ${m("45 ÷ 3 = 15")}. ביחד: ${m("9 + 15 = 24")}.`}]},
+ {name:"השלמת סדרות של מספרים עשרוניים",pool:[
+  dec("0.2, 0.4, 0.6, ☐",0.8,`בכל צעד מוסיפים ${m("0.2")}: ${m("0.6 + 0.2 = 0.8")}.`),
+  dec("1.5, 1.75, 2, 2.25, ☐",2.5,`בכל צעד מוסיפים ${m("0.25")}: ${m("2.25 + 0.25 = 2.5")}.`),
+  dec("3.6, 3.3, 3, 2.7, ☐",2.4,`בכל צעד מורידים ${m("0.3")}: ${m("2.7 − 0.3 = 2.4")}.`),
+  dec("0.05, 0.1, 0.15, 0.2, ☐",0.25,`בכל צעד מוסיפים ${m("0.05")}: ${m("0.2 + 0.05 = 0.25")}.`)].map(q=>({...q,t:"איזה מספר בא אחר כך בסדרה?"}))},
+ {name:"חיבור וחיסור מספרים עשרוניים",pool:[
+  dec("3.45 + 2.7 = ?",r3(3.45+2.7),`מיישרים את הנקודות העשרוניות זו מתחת לזו, ומוסיפים 0 כדי שיהיו אותן ספרות אחרי הנקודה: ${m("3.45 + 2.70 = 6.15")}.`),
+  dec("10 − 3.68 = ?",r3(10-3.68),`כותבים את 10 כ־${m("10.00")}, ואז מחסירים במאונך: ${m("10.00 − 3.68 = 6.32")}.`),
+  dec("12.5 − 4.75 = ?",r3(12.5-4.75),`מוסיפים 0: ${m("12.50 − 4.75 = 7.75")}.`),
+  dec("0.85 + 1.4 + 2.05 = ?",r3(0.85+1.4+2.05),`מיישרים את הנקודות: ${m("0.85 + 1.40 + 2.05 = 4.30")}, כלומר ${m("4.3")}.`)]},
+ {name:"משבר פשוט למספר עשרוני ולהיפך",pool:[
+  {k:"num",t:"כתבי את [3/4] כמספר עשרוני:",a:0.75,ex:`מרחיבים למכנה 100: [3/4] = [75/100] = ${m("0.75")}.`},
+  {k:"num",t:"כתבי את [7/20] כמספר עשרוני:",a:0.35,ex:`מרחיבים ב־5 למכנה 100: [7/20] = [35/100] = ${m("0.35")}.`},
+  {k:"frac",t:`כתבי את ${m("0.6")} כשבר פשוט (מצומצם):`,a:[3,5],ex:`${m("0.6")} זה שש עשיריות: [6/10]. מצמצמים ב־2: [3/5].`},
+  {k:"frac",t:`כתבי את ${m("1.25")} כמספר מעורב:`,a:[5,4],ex:`${m("1.25")} זה שלם ועוד [25/100]. מצמצמים ב־25: 1[1/4].`}]},
+ {name:"סידור עשרוניים ושברים מהקטן לגדול",pool:[
+  {k:"mc",ltr:true,wide:true,t:`סדרי מהקטן לגדול: ${m("0.5")}, [2/5], ${m("0.45")}`,ch:["[2/5] < 0.45 < 0.5","0.45 < [2/5] < 0.5","0.5 < 0.45 < [2/5]","[2/5] < 0.5 < 0.45"],a:"[2/5] < 0.45 < 0.5",ex:`הופכים הכול לעשרוני: [2/5] = ${m("0.4")}. אז ${m("0.4 < 0.45 < 0.5")}.`},
+  {k:"mc",ltr:true,wide:true,t:`סדרי מהקטן לגדול: ${m("0.3")}, [1/4], ${m("0.28")}`,ch:["[1/4] < 0.28 < 0.3","0.28 < 0.3 < [1/4]","0.3 < [1/4] < 0.28","0.28 < [1/4] < 0.3"],a:"[1/4] < 0.28 < 0.3",ex:`[1/4] = ${m("0.25")}. אז ${m("0.25 < 0.28 < 0.3")}.`},
+  {k:"mc",ltr:true,wide:true,t:`סדרי מהקטן לגדול: ${m("1.2")}, 1[1/10], ${m("1.15")}`,ch:["1[1/10] < 1.15 < 1.2","1.15 < 1.2 < 1[1/10]","1.2 < 1.15 < 1[1/10]","1.15 < 1[1/10] < 1.2"],a:"1[1/10] < 1.15 < 1.2",ex:`1[1/10] = ${m("1.1")}. אז ${m("1.1 < 1.15 < 1.2")}.`},
+  {k:"mc",ltr:true,wide:true,t:`סדרי מהקטן לגדול: ${m("0.7")}, [3/5], [3/4], ${m("0.65")}`,ch:["[3/5] < 0.65 < 0.7 < [3/4]","0.65 < [3/5] < [3/4] < 0.7","[3/5] < [3/4] < 0.65 < 0.7","0.7 < [3/4] < 0.65 < [3/5]"],a:"[3/5] < 0.65 < 0.7 < [3/4]",ex:`[3/5] = ${m("0.6")} ו־[3/4] = ${m("0.75")}. אז ${m("0.6 < 0.65 < 0.7 < 0.75")}.`}]}
+]},
+{name:"גאומטריה ומדידות",topics:[
+ {name:"גובה במקבילית ובמשולש",pool:[
+  {k:"mc",ltr:true,t:"במקבילית ABCD, איזה קטע הוא הגובה לצלע AB?",pic:PARA_H,ch:["DE","AD","DB","BC"],a:"DE",ex:"גובה הוא קטע שיוצא מקודקוד ופוגש את הצלע שמולו (או את ההמשך שלה) בזווית ישרה. DE יורד מ־D אל AB בזווית ישרה. AD ו־BC הן צלעות, ו־DB הוא אלכסון."},
+  {k:"mc",ltr:true,t:"במשולש ABC, איזה קטע הוא הגובה לצלע BC?",pic:TRI_H,ch:["AD","AM","AB","AC"],a:"AD",ex:"AD יורד מהקודקוד A אל הצלע BC בזווית ישרה, ולכן הוא הגובה. AM מגיע לאמצע הצלע, אבל לא בזווית ישרה."},
+  {k:"num",t:"שטח מקבילית הוא 48 סמ״ר, ואורך אחת הצלעות שלה 8 ס״מ. מה אורך הגובה לצלע הזאת?",a:6,unit:"ס״מ",ex:`שטח מקבילית = צלע × גובה. אז ${m("גובה = 48 ÷ 8 = 6")} ס״מ.`},
+  {k:"num",t:"שטח משולש הוא 30 סמ״ר, ואורך הבסיס שלו 12 ס״מ. מה אורך הגובה לבסיס?",a:5,unit:"ס״מ",ex:`שטח משולש = (בסיס × גובה) ÷ 2. אז בסיס × גובה = ${m("30 × 2 = 60")}, והגובה הוא ${m("60 ÷ 12 = 5")} ס״מ.`}]},
+ {name:"אלכסונים",pool:[
+  {k:"mc",t:"כמה אלכסונים יש למחומש (מצולע עם 5 צלעות)?",ch:["5","10","3","2"],a:"5",ex:"מכל קודקוד יוצאים 2 אלכסונים (לא לשכנים ולא לעצמו). 5 קודקודים × 2 = 10, אבל כל אלכסון נספר פעמיים, אז יש 5."},
+  {k:"mc",t:"באיזה מרובע האלכסונים תמיד שווים באורכם?",ch:["מלבן","מעוין שאינו ריבוע","מקבילית שאינה מלבן","דלתון"],a:"מלבן",ex:"במלבן (וגם בריבוע) האלכסונים שווים באורכם. במעוין ובמקבילית רגילה הם לא שווים."},
+  {k:"mc",t:"כמה אלכסונים אפשר לשרטט מקודקוד אחד של משושה (6 צלעות)?",ch:["3","6","4","2"],a:"3",ex:"משושה יש 6 קודקודים. מקודקוד אחד אי אפשר לשרטט אלכסון אליו עצמו ולשני השכנים שלו, אז נשארים 6 − 3 = 3."},
+  {k:"mc",t:"מה נכון תמיד לגבי האלכסונים של מעוין?",ch:["הם מאונכים זה לזה","הם שווים באורכם","הם מקבילים זה לזה","הם לא נפגשים"],a:"הם מאונכים זה לזה",ex:"במעוין האלכסונים מאונכים זה לזה (נפגשים בזווית ישרה) וחוצים זה את זה. הם שווים באורכם רק כשהמעוין הוא ריבוע."}]},
+ {name:"היקף ושטח של מלבן ומקבילית",pool:[
+  {k:"num",t:"מה שטח המלבן?",pic:rectPic("12 ס״מ","7 ס״מ"),a:84,unit:"סמ״ר",ex:`שטח מלבן = אורך × רוחב = ${m("12 × 7 = 84")} סמ״ר.`},
+  {k:"num",t:"היקף המלבן הוא 30 ס״מ. מה השטח שלו?",pic:rectPic("9 ס״מ","?"),a:54,unit:"סמ״ר",ex:`היקף = 2 × (אורך + רוחב), אז אורך + רוחב = ${m("30 ÷ 2 = 15")}. הצלע השנייה: ${m("15 − 9 = 6")} ס״מ. השטח: ${m("9 × 6 = 54")} סמ״ר.`},
+  {k:"num",t:"מה שטח המקבילית?",pic:PARA_AREA,a:60,unit:"סמ״ר",ex:`שטח מקבילית = צלע × הגובה אליה = ${m("10 × 6 = 60")} סמ״ר. את הצלע של 7 ס״מ לא צריך בשביל השטח.`},
+  {k:"num",t:"מה היקף המקבילית?",pic:PARA_AREA,a:34,unit:"ס״מ",ex:`היקף = סכום כל הצלעות: ${m("10 + 7 + 10 + 7 = 34")} ס״מ. את הגובה לא צריך בשביל ההיקף.`}]}
+]}];
+// a short hint per topic, in the same order as the topics above
+const TIPS=[
+ "כתבי את המספרים זה מתחת לזה, ספרה מתחת לספרה, והתחילי מהאחדות (מימין).",
+ "התחילי מהאחדות. אם הספרה למעלה קטנה מדי, פרטי: קחי 1 מהספרה שמשמאל.",
+ "אם המספר השני דו־ספרתי, פרקי אותו. למשל 27 = 20 + 7: כפלי בכל חלק, ואז חברי.",
+ "ארבעה צעדים שחוזרים על עצמם: חלק, כפול, חסר, הורד.",
+ "מחקי אותו מספר של אפסים מסוף שני המספרים, ואז חלקי. למשל 4,800 ÷ 60 = 480 ÷ 6.",
+ "קודם סוגריים, אחר כך כפל וחילוק, ובסוף חיבור וחיסור.",
+ "חשבי על הפעולה ההפוכה: חיבור הופכים לחיסור, וכפל הופכים לחילוק.",
+ "עגלי כל מספר למספר עגול שקרוב אליו, ואז חשבי בראש.",
+ "קראי לאט, וכתבי איזה תרגיל מתאים לשאלה לפני שאת מחשבת.",
+ "צריך מכנה משותף. במספר מעורב אפשר לחשב את השלמים לחוד ואת השברים לחוד.",
+ "ספרי לכמה חלקים מחולק כל שלם על הישר. זה המכנה.",
+ "הביאי את שני השברים למכנה משותף, ואז השווי את המונים.",
+ "כדי למצוא [3/4] מכמות: חלקי במכנה (4), ואז כפלי במונה (3).",
+ "בדקי בכמה המספר גדל או קטן בכל צעד, והמשיכי באותו צעד.",
+ "כתבי את המספרים כך שהנקודות העשרוניות יהיו זו מתחת לזו. אפשר להוסיף אפסים בסוף.",
+ "הרחיבי את השבר למכנה 10 או 100. למשל [1/2] = [5/10] = 0.5.",
+ "הפכי את כל השברים למספרים עשרוניים, ואז השווי ביניהם.",
+ "גובה יוצא מקודקוד ופוגש את הצלע שמולו בזווית ישרה (90 מעלות).",
+ "אלכסון הוא קטע שמחבר שני קודקודים שאינם שכנים.",
+ "היקף = סכום כל הצלעות. שטח מלבן = אורך × רוחב. שטח מקבילית = צלע × הגובה אליה."
+];
+const TOPICS=SECTIONS.flatMap((S,s)=>S.topics.map(T=>({...T,sec:s}))).map((T,i)=>({...T,tip:TIPS[i]}));
+
+/* ---------- messages for Gaia ---------- */
+const PRAISE=["כל הכבוד גאיה! אבי ממש שמח.","תשובה של אלופה! אבי גאה בך.","בול! גאיה מוכנה למבחן. אבי מוחא כפיים.","יש! עוד נושא שאת שולטת בו. אבי שמח, גאיה.",
+ "גאיה דור עושה את זה שוב! אבי קופץ משמחה.","מבזק: גאיה מוכנה למבחן! אבי בכלל לא מופתע.","וואו, גאיה! אבי שולח לך חיבוק ענק.","פששש, איזה ראש! אבי מרוצה.",
+ "תותחית! המורות יתלהבו. ואבי כבר מתלהב.","נכון! מכאן ועד הירח, אבי גאה בך.","כפיים לגאיה! אבי מוחא הכי חזק.","את פשוט מבריקה, גאיה. אבי מתגאה בך."];
+const FIXED=["עכשיו זה יושב! אבי שמח, גאיה.","רואה? למדת את זה! כל הכבוד גאיה.","תיקון של אלופה! אבי גאה בך.","יש! הפעם הצלחת, ואבי מוחא כפיים."];
+const MISSED=["לא נורא, גאיה. בשביל זה מתרגלים לפני המבחן!","זה בסדר, גאיה. קראי את ההסבר, ומיד תקבלי שאלה מחליפה.","לא נורא! אבי אומר שטעות בתרגול היא נקודה במבחן."];
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+const bags=new Map();
+function pickFrom(list){let b=bags.get(list);if(!b||!b.length){b=shuffle(list);bags.set(list,b)}return b.pop()}
+
+/* ---------- saved test state (per browser) ---------- */
+const KEY="gaia-test-v1";
+// order[t]: the pool order for topic t; pos: current topic; alt: 0 = main question, 1-3 = replacement; res[t]: first | fixed | miss
+let st=null;
+try{st=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
+function newTest(){st={order:TOPICS.map(T=>shuffle(T.pool.map((_,i)=>i))),pos:0,alt:0,res:TOPICS.map(()=>null),done:false};save()}
+const $=s=>document.querySelector(s), view=$("#view");
+const firstCount=()=>st.res.filter(r=>r==="first").length;
+
+/* ---------- start ---------- */
+function start(){
+  const inProgress=st&&!st.done&&(st.pos>0||st.alt>0);
+  view.innerHTML=`<div class="card">
+    <h2>היי גאיה! מוכנה?</h2>
+    <p>במבחן הזה יש <b>${TOPICS.length} שאלות, אחת מכל נושא</b> שהמורות כתבו בדף הנושאים למבחן תחילת השנה. אם תעני לא נכון, תקבלי הסבר קצר ואז <b>שאלה מחליפה</b> באותו נושא, עד 3 פעמים. בסוף תראי ציון ואילו נושאים כדאי לתרגל עוד.</p>
+    <p class="sub">כדאי להחזיק דף ועיפרון בצד.</p>
+    ${SECTIONS.map((S,s)=>`<div style="display:flex;flex-direction:column;gap:8px"><span class="sec">${S.name}</span><ul class="topics">${TOPICS.filter(T=>T.sec===s).map(T=>`<li>${T.name}</li>`).join("")}</ul></div>`).join("")}
+    <div class="actions">
+      ${inProgress?`<button class="btn" id="cont">להמשיך מאיפה שעצרתי (שאלה ${st.pos+1})</button><button class="btn ghost" id="fresh">להתחיל מבחן חדש</button>`
+                  :`<button class="btn" id="fresh">להתחיל את המבחן</button>`}
+      ${st&&st.done?`<button class="btn ghost" id="last">לתוצאות של המבחן הקודם</button>`:""}
+    </div>
+  </div>
+  <div class="foot"><span>עוד תרגול: <a href="../gaia/">מסע השברים</a> · <a href="../gaia-division/">מסע החילוק הארוך</a></span><span>ההתקדמות נשמרת בדפדפן הזה.</span></div>`;
+  $("#cont")&&($("#cont").onclick=showQ);
+  $("#fresh").onclick=()=>{newTest();showQ()};
+  $("#last")&&($("#last").onclick=report);
+}
+
+/* ---------- one question ---------- */
+let sel=null,answered=false;
+// encouragement at the start, between the test's parts, and halfway
+function cheer(){
+  if(st.alt)return "";
+  const T=TOPICS[st.pos],prev=TOPICS[st.pos-1];
+  let t="";
+  if(st.pos===0)t="יאללה גאיה, מתחילים! קחי את הזמן, אין לחץ. אבי איתך.";
+  else if(prev.sec!==T.sec)t=`סיימת את החלק של ${SECTIONS[prev.sec].name}! עכשיו: ${SECTIONS[T.sec].name}. את בדרך הנכונה, גאיה.`;
+  else if(st.pos===Math.floor(TOPICS.length/2))t="עברת כבר חצי מבחן! אבי גאה בך. ממשיכים.";
+  else if(st.pos===TOPICS.length-1)t="שאלה אחרונה, גאיה! עוד רגע סיימת.";
+  return t?`<div class="fb good pop"><p>${t}</p></div>`:"";
+}
+const curQ=()=>TOPICS[st.pos].pool[st.order[st.pos][st.alt]];
+function showQ(){
+  sel=null;answered=false;
+  const T=TOPICS[st.pos],q=curQ();
+  let body="";
+  if(q.k==="mc"){
+    const wrapC=c=>q.ltr?`<bdi class="m" dir="ltr">${fmt(c)}</bdi>`:fmt(c);
+    body=`<div class="choices">${shuffle(q.ch).map(c=>`<button class="choice${q.wide?" wide":""}" data-v="${c}">${wrapC(c)}</button>`).join("")}</div>`;
+  }else if(q.k==="frac"){
+    body=`<div class="inrow"><span class="fracin">
+      <label class="fld"><input class="box sm" id="inW" inputmode="numeric" autocomplete="off" aria-label="שלמים"><span>שלמים (אם יש)</span></label>
+      <span class="stack"><input class="box sm" id="inN" inputmode="numeric" autocomplete="off" aria-label="מונה"><hr><input class="box sm" id="inD" inputmode="numeric" autocomplete="off" aria-label="מכנה"></span>
+    </span></div>`;
+  }else{
+    body=`<div class="inrow"><input class="box" id="inX" inputmode="decimal" autocomplete="off" aria-label="התשובה">${q.unit?`<span class="unit">${q.unit}</span>`:""}</div>`;
+  }
+  view.innerHTML=`<section class="wrap" style="gap:14px">
+    <div class="qhead"><button class="linkbtn" id="home">→ למסך הפתיחה</button><span class="where">שאלה ${st.pos+1} מתוך ${TOPICS.length}</span></div>
+    <div class="bar" aria-hidden="true"><i style="width:${st.pos/TOPICS.length*100}%"></i></div>
+    ${cheer()}
+    <div class="card">
+      <div class="qhead"><span class="chip">${SECTIONS[T.sec].name} · ${T.name}</span>${st.alt?`<span class="chip alt">שאלה מחליפה ${st.alt} מתוך 3</span>`:""}</div>
+      <p class="qtext">${fmt(q.t)}</p>
+      ${q.e?`<div class="expr">${fmt(q.e)}</div>`:""}
+      ${q.pic?`<div class="pic">${q.pic}</div>`:""}
+      ${body}
+      <div id="fb"></div>
+      <div class="actions"><button class="btn" id="go" ${q.k==="mc"?"disabled":""}>בדיקה</button><button class="btn ghost" id="hint">צריכה רמז?</button><button class="linkbtn" id="skip" hidden>לעבור לנושא הבא</button></div>
+    </div></section>`;
+  $("#home").onclick=start;
+  $("#hint").onclick=()=>{$("#fb").innerHTML=`<div class="fb info pop"><strong>רמז</strong><p>${fmt(T.tip)}</p></div>`;$("#hint").hidden=true};
+  if(q.k==="mc"){
+    view.querySelectorAll(".choice").forEach(b=>b.onclick=()=>{
+      if(answered)return;
+      view.querySelectorAll(".choice").forEach(x=>x.classList.remove("sel"));
+      b.classList.add("sel");sel=b.dataset.v;$("#go").disabled=false;
+    });
+  }else{
+    const ins=view.querySelectorAll(".box");
+    ins.forEach(x=>x.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("#go").click()}}));
+    ins[q.k==="frac"?1:0].focus({preventScroll:true});
+  }
+  $("#go").onclick=()=>answered?next():check();
+  $("#skip").onclick=()=>{st.pos++;st.alt=0;save();st.pos>=TOPICS.length?finish():showQ();window.scrollTo(0,0)};
+}
+function parseNum(v){
+  v=v.trim().replace(/\s/g,"");
+  if(v==="")return null;
+  if(/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(v))v=v.replace(/,/g,"");else v=v.replace(",",".");
+  return /^\d*\.?\d+$/.test(v)?+v:NaN;
+}
+function check(){
+  const q=curQ(),fb=$("#fb");
+  let ok,note="";
+  if(q.k==="mc"){if(sel==null)return;ok=sel===q.a}
+  else if(q.k==="frac"){
+    const w=parseNum($("#inW").value)||0,n=parseNum($("#inN").value),d=parseNum($("#inD").value);
+    if(n===null&&d===null&&w){ok=w*q.a[1]===q.a[0]}
+    else{
+      if(n===null||d===null){fb.innerHTML=`<div class="fb info pop">כתבי מונה (למעלה) ומכנה (למטה). אם יש שלמים, כתבי אותם בתיבה משמאל.</div>`;return}
+      if(![w,n,d].every(Number.isInteger)){fb.innerHTML=`<div class="fb info pop">כתבי מספרים שלמים בלבד.</div>`;return}
+      if(d===0){fb.innerHTML=`<div class="fb info pop">במכנה אסור לכתוב 0.</div>`;return}
+      ok=(w*d+n)*q.a[1]===q.a[0]*d;
+      if(ok&&(gcd(n,d)>1||n>=d))note=` אפשר גם לכתוב את זה כך: ${fmt(mixedStr(q.a[0],q.a[1]))}.`;
+    }
+  }else{
+    const v=parseNum($("#inX").value);
+    if(v===null){fb.innerHTML=`<div class="fb info pop">כתבי את התשובה בתיבה.</div>`;return}
+    if(Number.isNaN(v)){fb.innerHTML=`<div class="fb info pop">כתבי רק מספר, בלי מילים או סימנים.</div>`;return}
+    ok=Math.abs(v-q.a)<1e-9;
+  }
+  answered=true;
+  $("#hint").hidden=true;
+  view.querySelectorAll(".box").forEach(x=>x.disabled=true);
+  if(q.k==="mc")view.querySelectorAll(".choice").forEach(b=>{b.disabled=true;if(b.dataset.v===q.a)b.classList.add("right");else if(b.dataset.v===sel)b.classList.add("wrong")});
+  const ansText=q.k==="mc"?(q.ltr?m(fmt(q.a)):fmt(q.a)):q.k==="frac"?fmt(mixedStr(q.a[0],q.a[1])):`${m(N(q.a))}${q.unit?" "+q.unit:""}`;
+  const g=$("#go");
+  if(ok){
+    st.res[st.pos]=st.alt?"fixed":"first";
+    fb.innerHTML=`<div class="fb good pop"><strong>${pickFrom(st.alt?FIXED:PRAISE)}</strong><p>${fmt(q.ex)}${note}</p></div>`;
+    g.textContent=st.pos<TOPICS.length-1?"לשאלה הבאה ←":"לתוצאות המבחן";
+    st.pos++;st.alt=0;
+  }else{
+    st.res[st.pos]="miss";
+    fb.innerHTML=`<div class="fb bad pop"><strong>${pickFrom(MISSED)}</strong><p>התשובה הנכונה: ${ansText}</p><p>${fmt(q.ex)}</p></div>`;
+    if(st.alt<3){st.alt++;g.textContent="לשאלה מחליפה ←";$("#skip").hidden=false}
+    else{g.textContent=st.pos<TOPICS.length-1?"לנושא הבא ←":"לתוצאות המבחן";st.pos++;st.alt=0}
+  }
+  save();
+  g.focus({preventScroll:true});
+}
+function next(){if(st.pos>=TOPICS.length){finish();return}showQ();window.scrollTo(0,0)}
+function finish(){st.done=true;save();report()}
+
+/* ---------- report ---------- */
+const LABEL={first:"נכון בניסיון הראשון",fixed:"תוקן בשאלה מחליפה",miss:"כדאי לתרגל",none:"לא נענה"};
+function report(){
+  const f=firstCount(),score=Math.round(f/TOPICS.length*100),fixed=st.res.filter(r=>r==="fixed").length;
+  const msg=score>=90?"מצוין, גאיה! את מוכנה למבחן. אבי גאה בך בטירוף.":score>=75?"יפה מאוד, גאיה! עוד קצת תרגול בנושאים שמסומנים, ואת שם. אבי גאה בך.":score>=55?"התחלה טובה, גאיה. תרגלי את הנושאים שמסומנים, ונסי שוב. אבי מאמין בך.":"זה בדיוק בשביל זה מתרגלים, גאיה. תרגלי את הנושאים שמסומנים ונסי שוב. אבי בטוח שתצליחי.";
+  const practice=TOPICS.map((T,t)=>({T,r:st.res[t]})).filter(x=>x.r!=="first");
+  view.innerHTML=`<div class="card pop">
+    <div class="score"><span class="big">${score}</span><div><h2>כל הכבוד שסיימת, גאיה!</h2><p>${f} מתוך ${TOPICS.length} נכונות בניסיון הראשון${fixed?`, ועוד ${fixed} תוקנו בשאלה מחליפה`:""}.</p></div></div>
+    <p>${msg}</p>
+    <div class="report">${SECTIONS.map((S,s)=>`<div><span class="sec">${S.name}</span>${TOPICS.map((T,t)=>T.sec===s?`<div class="rrow"><span>${T.name}</span><span class="st ${st.res[t]||"none"}">${LABEL[st.res[t]||"none"]}</span></div>`:"").join("")}</div>`).join("")}</div>
+    ${practice.length?`<p class="sub">כשתעשי את המבחן שוב, תקבלי שאלות אחרות מאותם נושאים.</p>`:""}
+    <div class="actions"><button class="btn" id="again">לעשות את המבחן שוב</button><button class="btn ghost" id="home">למסך הפתיחה</button></div>
+  </div>`;
+  $("#again").onclick=()=>{newTest();showQ();window.scrollTo(0,0)};
+  $("#home").onclick=start;
+  window.scrollTo(0,0);
+}
+st&&st.done?report():start();
+</script>
+</body>
+</html>
