@@ -5,12 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>מעבירים…</title>
 <script>
-// Send any mistyped "gaia" address (e.g. /Gaia, /GAIA/) to Gaia's fractions site
-if (/gaia/i.test(location.pathname)) location.replace("/waves-quiz/gaia/");
+// Send mistyped Gaia addresses (any letter case) to the right site
+if (/division/i.test(location.pathname)) location.replace("/waves-quiz/gaia-division/");
+else if (/gaia/i.test(location.pathname)) location.replace("/waves-quiz/gaia/");
 </script>
 </head>
 <body style="font-family:system-ui,sans-serif;text-align:center;padding:40px 16px">
 <p>הדף לא נמצא.</p>
-<p><a href="/waves-quiz/">לדף הראשי</a> · <a href="/waves-quiz/gaia/">מסע השברים של גאיה</a></p>
+<p><a href="/waves-quiz/">לדף הראשי</a> · <a href="/waves-quiz/gaia/">מסע השברים של גאיה</a> · <a href="/waves-quiz/gaia-division/">מסע החילוק של גאיה</a></p>
 </body>
 </html>

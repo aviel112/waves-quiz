@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>מסע החילוק של גאיה</title>
+<meta name="theme-color" content="#16325C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="חילוק">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Secular+One&family=Varela+Round&display=swap">
+<style>
+/* Layout: one centered column. Home = demo + level map; quiz = one exercise, then an animated step-by-step solution */
+:root{
+  --bg:#EEF3F9; --surface:#FFFFFF; --surface2:#DCE5F1; --ink:#16233A; --muted:#566883;
+  --accent:#2F64D6; --accent-ink:#FFFFFF; --hl:#FFE29A; --teal:#178F82; --berry:#C93A60; --line:#C5D2E3;
+  --good-bg:#DDF3EE; --bad-bg:#FBE3EA;
+  --display:"Secular One","Varela Round",system-ui,sans-serif;
+  --body:"Varela Round",system-ui,"Segoe UI",Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#111827; --surface:#1A2436; --surface2:#2A3850; --ink:#E7EDF6; --muted:#9AA9C0;
+  --accent:#7FA6FF; --accent-ink:#0E1626; --hl:#6B5418; --teal:#3CC2B2; --berry:#F0728F; --line:#33435E;
+  --good-bg:#173A36; --bad-bg:#3F1F2A; color-scheme:dark}}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:max(24px,env(safe-area-inset-top,0px)) max(48px,env(safe-area-inset-bottom,0px))}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;line-height:1.2}
+h1{font-size:2.1rem} h2{font-size:1.5rem} h3{font-size:1.2rem}
+p{margin:0}
+button{font:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+bdi.m{direction:ltr;unicode-bidi:isolate;white-space:nowrap;font-variant-numeric:tabular-nums}
+
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+header.top .sub{color:var(--muted)}
+.meter{display:flex;flex-direction:column;gap:6px;min-width:200px;flex:1;max-width:280px}
+.meter .lbl{font-size:.85rem;color:var(--muted);display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+.bar{height:12px;border-radius:99px;background:var(--surface2);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .4s}
+
+.levels{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.lvl{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:14px 16px;text-align:right;
+  display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center;color:var(--ink)}
+.lvl:hover:not(:disabled){border-color:var(--accent)}
+.lvl:disabled{opacity:.5;cursor:not-allowed}
+.lvl .num{grid-row:span 2;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-size:1.3rem;background:var(--surface2)}
+.lvl.done .num{background:var(--teal);color:var(--bg)}
+.lvl.current .num{background:var(--accent);color:var(--accent-ink)}
+.lvl .name{font-weight:700;line-height:1.3}
+.lvl .meta{font-size:.82rem;color:var(--muted)}
+.stars{letter-spacing:2px;color:var(--accent)} .stars .off{color:var(--line)}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:.9rem}
+.foot a{color:var(--accent)}
+.linkbtn{background:none;border:none;color:var(--muted);text-decoration:underline;padding:4px}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+.panel{background:var(--surface);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:14px;box-shadow:0 2px 0 var(--line)}
+.lesson{background:var(--surface);border-radius:14px;padding:14px 18px;border:2px dashed var(--line);display:flex;flex-direction:column;gap:10px}
+.lesson summary{cursor:pointer;font-family:var(--display);color:var(--accent)}
+.lesson[open] summary{margin-bottom:6px}
+.lesson .body{display:flex;flex-direction:column;gap:12px}
+
+/* ---- the long-division board ---- */
+.player{display:flex;flex-direction:column;gap:12px}
+.boardwrap{overflow-x:auto;display:flex;justify-content:center;padding:8px 0}
+.board{direction:ltr;display:inline-grid;font-size:1.8rem;--cw:1.3em;--ch:1.55em;--bw:.7em;font-variant-numeric:tabular-nums;line-height:1}
+.cell{display:grid;place-items:center;border-radius:7px;position:relative;z-index:1}
+.cell.q{color:var(--accent);font-weight:700}
+.cell.op{color:var(--muted)}
+.cell.hl{background:var(--hl)}
+.dv{display:grid;place-items:center;padding-inline:.15em .2em;font-weight:700}
+.brk{border-right:3px solid var(--ink);border-radius:0 55% 55% 0 / 0 50% 50% 0;margin-block:2px}
+.roof{border-top:3px solid var(--ink);align-self:start;height:0;margin-top:-1px}
+.uline{border-bottom:3px solid var(--ink);align-self:end;height:0;margin-bottom:1px}
+.board .new{animation:popin .55s ease-out both}
+.board .new.down{animation:slidedown .9s cubic-bezier(.4,0,.2,1) both}
+.board .uline.new{animation:grow .45s ease-out both;transform-origin:right}
+@keyframes popin{from{opacity:0;transform:translateY(-.35em) scale(.7)}to{opacity:1;transform:none}}
+@keyframes slidedown{from{transform:translateY(calc(var(--dy) * -1 * var(--ch)))}to{transform:none}}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+.cycle{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.cycle span{padding:3px 12px;border-radius:99px;background:var(--surface2);color:var(--muted);font-size:.9rem;transition:background .2s}
+.cycle span.on{background:var(--accent);color:var(--accent-ink)}
+.cap{min-height:5.2em;font-size:1.1rem;background:var(--bg);border-radius:12px;padding:12px 16px}
+.pctl{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
+.pbtn{background:var(--surface2);color:var(--ink);border:none;border-radius:10px;padding:8px 16px}
+.pbtn.main{background:var(--accent);color:var(--accent-ink);font-family:var(--display);padding:8px 22px}
+.pbtn:disabled{opacity:.4;cursor:not-allowed}
+.pcount{color:var(--muted);font-size:.9rem;font-variant-numeric:tabular-nums;min-width:4.5em;text-align:center}
+.steps{margin:0;padding-inline-start:1.4em;display:flex;flex-direction:column;gap:6px}
+.steps li.cur{background:var(--hl);border-radius:6px}
+details.written summary{cursor:pointer;color:var(--accent)}
+
+/* ---- quiz ---- */
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.qhead .where{color:var(--muted);font-variant-numeric:tabular-nums}
+.dots{display:flex;gap:6px}
+.dots i{width:12px;height:12px;border-radius:50%;background:var(--surface2)}
+.dots i.r1{background:var(--teal)} .dots i.r2{background:var(--accent)} .dots i.r3{background:var(--berry)}
+.dots i.now{outline:2px solid var(--ink);outline-offset:1px}
+.card{background:var(--surface);border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:18px;box-shadow:0 2px 0 var(--line)}
+.qtext{font-size:1.2rem;line-height:1.7}
+.expr{direction:ltr;text-align:center;font-size:2.1rem;font-variant-numeric:tabular-nums}
+.ans{display:flex;justify-content:center;gap:16px;flex-wrap:wrap}
+.fld{display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--muted);font-size:.95rem}
+.box{width:140px;font:inherit;font-size:1.6rem;text-align:center;padding:6px;border:2px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-variant-numeric:tabular-nums;direction:ltr}
+.box.sm{width:100px}
+.box:focus{border-color:var(--accent);outline:none}
+.paper{color:var(--muted);font-size:.9rem;text-align:center}
+.actions{display:flex;gap:12px;flex-wrap:wrap}
+.btn{background:var(--accent);color:var(--accent-ink);border:none;border-radius:12px;padding:12px 26px;font-family:var(--display);font-size:1.1rem}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line)}
+.fb{border-radius:14px;padding:14px 18px;display:flex;flex-direction:column;gap:6px;font-size:1.05rem}
+.fb.good{background:var(--good-bg)} .fb.bad{background:var(--bad-bg)} .fb.info{background:var(--surface2)}
+.fb strong{font-family:var(--display);font-weight:400;font-size:1.2rem}
+.solution{display:flex;flex-direction:column;gap:12px;border-top:2px dashed var(--line);padding-top:16px}
+.pop{animation:pop .35s ease-out}
+@keyframes pop{0%{transform:scale(.97)}60%{transform:scale(1.02)}100%{transform:scale(1)}}
+.result{text-align:center;align-items:center}
+.result .big{font-size:3rem;letter-spacing:6px}
+@media (prefers-reduced-motion:reduce){.pop,.board .new,.board .new.down,.board .uline.new{animation:none}.bar>i{transition:none}}
+@media (max-width:440px){h1{font-size:1.75rem}.card{padding:18px}.board{font-size:1.5rem}.expr{font-size:1.7rem}.box{width:120px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>מסע החילוק הארוך של גאיה</h1>
+      <p class="sub">100 תרגילים ב־10 שלבים, מהקל אל הקשה. אחרי כל תרגיל יש הסבר והדגמה, שלב אחרי שלב.</p>
+    </div>
+    <div class="meter" aria-label="התקדמות כללית">
+      <div class="lbl"><span>התקדמות</span><span id="totalLbl">0 / 100</span></div>
+      <div class="bar"><i id="totalBar" style="width:0%"></i></div>
+    </div>
+  </header>
+  <main id="view"></main>
+</div>
+
+<script>
+/* ---------- the 100 exercises: [dividend, divisor] or an object for word problems ---------- */
+const LEVELS = [
+{name:"חילוק בלוח הכפל", ex:[28,4],
+ lesson:"חילוק הוא ההפך של כפל. התרגיל <bdi class=m>42 ÷ 6</bdi> שואל: כמה פעמים 6 נכנס ב־42? כי <bdi class=m>7 × 6 = 42</bdi>, התשובה היא 7. בחילוק ארוך כותבים את <b>המחולק</b> (42) בתוך ה\"בית\", את <b>המחלק</b> (6) משמאל, ואת התשובה, <b>המנה</b>, למעלה.",
+ qs:[[42,6],[56,8],[63,7],[36,4],[81,9],[48,6],[72,8],[54,9],[35,5],[64,8]]},
+{name:"חילוק עם שארית", ex:[26,4],
+ lesson:"לא תמיד החלוקה יוצאת בדיוק. ב־<bdi class=m>17 ÷ 5</bdi>, 5 נכנס 3 פעמים (זה 15), ונשארים 2. זאת <b>השארית</b>. התשובה: 3, שארית 2. השארית תמיד קטנה מהמחלק. אם היא יצאה גדולה, אפשר לחלק עוד פעם.",
+ qs:[[17,5],[23,4],[38,6],[45,7],[29,3],[52,8],[31,9],[44,5],[60,7],[19,2]]},
+{name:"דו־ספרתי, צעד אחרי צעד", ex:[68,2],
+ lesson:"במספר דו־ספרתי עובדים ספרה אחרי ספרה, משמאל לימין. כל סיבוב הוא 4 צעדים: <b>חלק, כפול, חסר, הורד</b>. אחרי שהורדנו ספרה, מתחילים סיבוב חדש עם המספר החדש.",
+ qs:[[84,4],[96,3],[69,3],[48,2],[88,4],[66,2],[77,7],[93,3],[86,2],[39,3]]},
+{name:"כשנשאר משהו באמצע", ex:[54,3],
+ lesson:"לפעמים אחרי החיסור נשאר משהו. זה בסדר! מורידים את הספרה הבאה לידו ומקבלים מספר חדש. למשל ב־<bdi class=m>72 ÷ 4</bdi>: 4 נכנס ב־7 פעם אחת, נשארים 3, מורידים את ה־2 ומקבלים 32.",
+ qs:[[72,4],[96,8],[84,6],[91,7],[75,5],[92,4],[78,6],[85,5],[98,7],[87,3]]},
+{name:"שארית בסוף", ex:[79,6],
+ lesson:"כשאין עוד ספרות להוריד ועדיין נשאר משהו, זאת השארית. תמיד אפשר לבדוק: <b>מנה × מחלק + שארית</b> צריך לצאת בדיוק המחולק.",
+ qs:[[47,3],[59,4],[83,6],[77,5],[94,8],[65,4],[89,7],[71,3],[58,5],
+     {D:97,d:6,t:"יש 97 סוכריות, ומחלקים אותן שווה בשווה בין 6 ילדים. כמה סוכריות מקבל כל ילד, וכמה נשארות?"}]},
+{name:"תלת־ספרתי", ex:[538,2],
+ lesson:"מספר תלת־ספרתי עובד בדיוק אותו דבר: חלק, כפול, חסר, הורד, ושוב מההתחלה. פשוט יש יותר סיבובים. כשהמחלק נכנס כבר בספרה הראשונה, גם בתשובה יהיו 3 ספרות.",
+ qs:[[486,2],[645,5],[852,4],[936,3],[774,6],[896,7],[984,8],[765,5],[714,6],
+     {D:856,d:4,t:"בספרייה יש 856 ספרים, ומסדרים אותם שווה בשווה על 4 מדפים. כמה ספרים יהיו על כל מדף?"}]},
+{name:"כשהספרה הראשונה קטנה", ex:[216,6],
+ lesson:"ב־<bdi class=m>156 ÷ 4</bdi> הספרה הראשונה היא 1, ו־4 לא נכנס ב־1. אז לוקחים שתי ספרות: 15. במקרה כזה בתשובה יהיו רק 2 ספרות.",
+ qs:[[156,4],[245,7],[312,8],[198,6],[432,9],[215,5],[364,7],[279,9],[157,6],
+     {D:184,d:4,t:"184 ילדים מתחלקים לקבוצות של 4. כמה קבוצות יהיו?"}]},
+{name:"זהירות, אפסים!", ex:[624,3],
+ lesson:"אם אחרי שהורדנו ספרה המחלק לא נכנס במספר, כותבים <b>0</b> בתשובה ומורידים עוד ספרה. אסור לדלג על ה־0! ב־<bdi class=m>618 ÷ 3</bdi> התשובה היא 206, ולא 26.",
+ qs:[[618,3],[824,4],[535,5],[912,3],[840,4],[721,7],[437,4],[803,8],[925,9],
+     {D:650,d:6,t:"אופה הכינה 650 עוגיות ואורזת אותן בקופסאות של 6. כמה קופסאות מלאות יהיו, וכמה עוגיות יישארו בחוץ?"}]},
+{name:"ארבע ספרות", ex:[2468,4],
+ lesson:"אין כאן שום דבר חדש, רק עוד סיבובים של חלק, כפול, חסר, הורד. עבדי לאט ובסדר, ושימי לב לאפסים.",
+ qs:[[1236,3],[4872,6],[2345,5],[7524,4],[3528,7],[6125,8],[9081,9],[5632,8],[8765,4],
+     {D:1458,d:6,t:"במשך 6 ימים נמכרו 1458 כרטיסים להופעה, אותו מספר בכל יום. כמה כרטיסים נמכרו בכל יום?"}]},
+{name:"מחלק דו־ספרתי", ex:[336,14],
+ lesson:"כשהמחלק דו־ספרתי, בצעד \"חלק\" צריך להעריך. כמה פעמים 14 נכנס ב־33? מנסים: <bdi class=m>2 × 14 = 28</bdi>, ו־<bdi class=m>3 × 14 = 42</bdi> כבר גדול מדי, אז 2. כדאי לכתוב בצד דף את הכפולות של המחלק.",
+ qs:[[144,12],[252,12],[375,15],[432,24],[598,13],[925,25],[784,16],[500,12],
+     {D:456,d:19,t:"בבית ספר יש 456 תלמידים ב־19 כיתות שוות. כמה תלמידים יש בכל כיתה?"},
+     {D:230,d:50,t:"230 ילדים יוצאים לטיול, ובכל אוטובוס יש 50 מקומות. כמה אוטובוסים צריך להזמין כדי שכולם ייסעו?",ans:5,label:"כמה אוטובוסים?",
+      note:"<bdi class=m>230 ÷ 50 = 4</bdi> ושארית 30. ארבעה אוטובוסים מתמלאים, אבל 30 ילדים עדיין בלי מקום, אז צריך עוד אוטובוס אחד: <b>5 אוטובוסים</b>."}]}
+];
+LEVELS.forEach(L=>L.qs=L.qs.map(q=>Array.isArray(q)?{D:q[0],d:q[1]}:q));
+
+/* ---------- messages for Gaia ---------- */
+const PRAISE = [
+ "כל הכבוד גאיה! אבי ממש שמח שהצלחת.",
+ "וואו, גאיה! תשובה מושלמת. אבי גאה בך.",
+ "גאיה דור עושה את זה שוב! אבי קופץ משמחה.",
+ "גוווול! גאיה בועטת, והתרגיל נכנס לרשת! הקהל משתולל, ובעיקר אבי.",
+ "הודעה דחופה מאבי: גאיה היא אלופת החילוק הארוך!",
+ "חלק, כפול, חסר, הורד, וגאיה מנצחת! אבי שמח.",
+ "בדיוק! אבי אומר: ידעתי שתצליחי.",
+ "יש! גאיה 1, חילוק ארוך 0. אבי מוחא כפיים.",
+ "מבזק: מדענים מאשרים שגאיה דור גאונה. אבי בכלל לא מופתע.",
+ "מלכת החילוק צדקה שוב! אבי משתחווה בפנייך, גאיה.",
+ "תשובה של אלופה! אבי שמח בשבילך, גאיה.",
+ "פששש, גאיה! איזה ראש. אבי מרוצה.",
+ "אם היינו מחלקים את ההצלחה שלך, היה מספיק לכל העולם. אבי שמח!",
+ "גאיה, את מדהימה! אבי שולח לך חיבוק ענק.",
+ "הצלחת! אבי עושה עכשיו ריקוד ניצחון בסלון.",
+ "תותחית! אבי שמח שאת מבינה את זה כל כך טוב.",
+ "כל הכבוד גאיה! עוד צעד במסע, ואבי מעודד מהצד.",
+ "בול! אפילו המורה למתמטיקה הייתה מתרגשת. ואבי בטוח מתרגש.",
+ "טראח! עוד תרגיל נפל. אבי שמח, גאיה.",
+ "גאיה דור, תזכרו את השם הזה! אבי בטוח לא ישכח. כל הכבוד!",
+ "אש! התרגילים כבר מפחדים ממך. אבי מת עלייך.",
+ "כפיים לגאיה! אבי מוחא הכי חזק.",
+ "את פשוט מבריקה, גאיה. אבי מתגאה בך.",
+ "נכון! מכאן ועד הירח, אבי גאה בך.",
+ "שארית הטעויות: 0! כל הכבוד גאיה, אבי שמח."
+];
+const PRAISE_RETRY = [
+ "לא ויתרת, וזה מה שחשוב! אבי שמח, גאיה.",
+ "בניסיון השני, והפעם בול! כל הכבוד גאיה.",
+ "ככה אלופות עושות: מתקנות וממשיכות. אבי גאה בך.",
+ "יש! תיקנת לבד. אבי אומר כל הכבוד, גאיה."
+];
+const TRY_AGAIN = ["עוד לא, גאיה. נסי שוב, את יכולה!","כמעט! עוד ניסיון אחד, גאיה.","לא נורא, גאיה. תסתכלי על הרמז ונסי שוב."];
+const SHOWN = ["לא נורא, גאיה. ככה לומדים!","זה בסדר, גאיה. בואי נראה יחד איך פותרים.","לא נורא! אבי אומר שטעויות הן חלק מהלמידה."];
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+const bags=new Map();
+function pickFrom(list){let b=bags.get(list);if(!b||!b.length){b=shuffle(list);bags.set(list,b)}return b.pop()}
+
+/* ---------- Avi's recordings ----------
+   Put audio files next to this page and list them here, e.g. "sounds/avi-1.mp3".
+   "correct" plays after a right answer, "levelDone" at the end of a level, "finale" after all 100. */
+const RECORDINGS = { correct: [], levelDone: [], finale: [] };
+let muted=false;
+try{muted=localStorage.getItem("division-muted")==="1"}catch(e){}
+const hasRecordings=()=>Object.values(RECORDINGS).some(a=>a.length);
+let playing=null;
+function playRec(kind){
+  const list=RECORDINGS[kind];
+  if(muted||!list||!list.length)return;
+  try{playing&&playing.pause();playing=new Audio(pickFrom(list));playing.play().catch(()=>{})}catch(e){}
+}
+const muteLabel=()=>muted?"להפעיל את ההקלטות של אבי":"להשתיק את ההקלטות של אבי";
+function muteBtn(){return hasRecordings()?`<button class="linkbtn" id="mute">${muteLabel()}</button>`:""}
+function bindMute(){
+  const b=document.getElementById("mute");if(!b)return;
+  b.onclick=()=>{muted=!muted;try{localStorage.setItem("division-muted",muted?"1":"0")}catch(e){}
+    if(muted&&playing)playing.pause();b.textContent=muteLabel()};
+}
+
+/* ---------- long division: build the step-by-step demo ---------- */
+const m=x=>`<bdi class="m">${x}</bdi>`;
+const times=q=>q===1?"פעם אחת":q===2?"פעמיים":`${m(q)} פעמים`;
+const TAGS={start:"מתחילים",div:"חלק",mul:"כפול",sub:"חסר",down:"הורד",end:"סיום",check:"בדיקה"};
+
+function buildDemo(D,d){
+  const s=String(D).split("").map(Number), n=s.length;
+  const els=[], frames=[];
+  const add=e=>(els.push(e),e);
+  const frame=(tag,cap,hl=[])=>(frames.push({tag,cap,hl}),frames.length-1);
+  const Q=Math.floor(D/d), R=D%d;
+
+  frame("start",`התרגיל: ${m(`${D} ÷ ${d}`)}. את המחולק ${m(D)} כותבים בתוך ה"בית", את המחלק ${m(d)} משמאל, ואת התשובה נכתוב למעלה.`);
+  s.forEach((x,i)=>add({r:1,c:i,t:x,from:0}));
+
+  let end=0, cur=s[0];
+  const tooSmall=[];
+  while(cur<d&&end<n-1){tooSmall.push(cur);end++;cur=cur*10+s[end]}
+  let curCells=[];for(let i=0;i<=end;i++)curCells.push([1,i]);
+  frame("start",tooSmall.length
+    ?`${m(d)} לא נכנס ב־${tooSmall.map(m).join(" וגם לא ב־")}, כי ${tooSmall.length>1?"הם קטנים":"הוא קטן"} מ־${m(d)}. אז לוקחים ${end+1} ספרות: ${m(cur)}.`
+    :`מתחילים מהספרה הראשונה משמאל: ${m(cur)}. ${m(d)} נכנס ב־${m(cur)}, אז אפשר להתחיל.`,curCells);
+
+  let pr=2, finalRem=null;
+  const finish=rem=>{
+    finalRem=rem;
+    const qc=[];for(let i=0;i<n;i++)if(els.some(e=>e.r===0&&e.c===i))qc.push([0,i]);
+    frame("end",`אין עוד ספרות להוריד, אז סיימנו. התשובה (המנה): ${m(Q)}${rem?`, ושארית ${m(rem)}`:", בלי שארית"}.`,qc);
+    frame("check",`בדיקה: ${m(`${Q} × ${d}${rem?` + ${rem}`:""} = ${D}`)}. יצא בדיוק המחולק, אז הפתרון נכון!`,qc);
+  };
+
+  while(true){
+    const q=Math.floor(cur/d), p=q*d, r=cur-p;
+    const kd=frame("div",`חלק: כמה פעמים ${m(d)} נכנס ב־${m(cur)}? `+(p===cur
+      ?`בדיוק ${times(q)}, כי ${m(`${q} × ${d} = ${p}`)}.`
+      :`${times(q)}, כי ${m(`${q} × ${d} = ${p}`)}, ו־${m(`${q+1} × ${d} = ${(q+1)*d}`)} כבר יותר מ־${m(cur)}.`)+` כותבים ${m(q)} למעלה.`,curCells);
+    add({r:0,c:end,t:q,from:kd,cls:"q"});
+
+    const ps=String(p), start=end-ps.length+1;
+    const km=frame("mul",`כפול: ${m(`${q} × ${d} = ${p}`)}. כותבים ${m(p)} מתחת ל־${m(cur)}, כך שהספרה האחרונה מיושרת.`,[[0,end]]);
+    ps.split("").forEach((x,i)=>add({r:pr,c:start+i,t:x,from:km}));
+    add({r:pr,c:start-1,t:"−",from:km,cls:"op"});
+
+    const rs=String(r);
+    const remCells=rs.split("").map((_,i)=>[pr+1,end-rs.length+1+i]);
+    const ks=frame("sub",`חסר: ${m(`${cur} − ${p} = ${r}`)}. בודקים: ${m(r)} קטן מ־${m(d)}? כן, אז ${m(q)} היה המספר הנכון.`,remCells);
+    add({line:true,r:pr,c0:start-1,c1:end,from:ks});
+    const remEls=rs.split("").map((x,i)=>add({r:pr+1,c:end-rs.length+1+i,t:x,from:ks}));
+
+    if(end===n-1){finish(r);break}
+
+    end++;const dig=s[end];cur=r*10+dig;
+    const kb=frame("down",r===0
+      ?`הורד: לא נשאר כלום, אז מורידים את הספרה הבאה, ${m(dig)}. המספר החדש הוא ${m(cur)}.`
+      :`הורד: מורידים את הספרה הבאה, ${m(dig)}, ושמים אותה ליד ה־${m(r)}. עכשיו יש לנו ${m(cur)}.`);
+    if(r===0)remEls.forEach(e=>e.to=kb);
+    add({r:pr+1,c:end,t:dig,from:kb,cls:"down",dy:pr});
+    curCells=(r===0?[]:remCells).concat([[pr+1,end]]);
+    frames[kb].hl=curCells.concat([[1,end]]);
+
+    let done=false;
+    while(cur<d){
+      const more=end<n-1;
+      const kz=frame("div",`חלק: ${m(d)} לא נכנס ב־${m(cur)}, כי ${m(cur)} קטן מ־${m(d)}. כותבים <b>0</b> למעלה${more?", ומורידים עוד ספרה":""}. אסור לדלג על ה־0!`,curCells);
+      add({r:0,c:end,t:0,from:kz,cls:"q"});
+      if(!more){finish(cur);done=true;break}
+      end++;const dg=s[end],old=cur;cur=cur*10+dg;
+      const kb2=frame("down",`הורד: מורידים את ${m(dg)}. עכשיו יש לנו ${m(cur)}${old===0?" (ה־0 שלפניו לא משנה)":""}.`);
+      add({r:pr+1,c:end,t:dg,from:kb2,cls:"down",dy:pr});
+      curCells=curCells.concat([[pr+1,end]]);
+      frames[kb2].hl=curCells.concat([[1,end]]);
+    }
+    if(done)break;
+    pr+=2;
+  }
+  const rows=Math.max(...els.map(e=>e.r))+1;
+  return {D,d,n,rows,els,frames,Q,R:finalRem};
+}
+
+function renderBoard(demo,k,animate){
+  const {n,rows,els,frames,d}=demo, hl=new Set(frames[k].hl.map(([r,c])=>r+":"+c));
+  let h=`<div class="board" role="img" aria-label="חילוק ארוך של ${demo.D} ב־${d}" style="grid-template-columns:auto var(--bw) repeat(${n},var(--cw));grid-template-rows:repeat(${rows},var(--ch))">`;
+  h+=`<div class="dv" style="grid-row:2;grid-column:1">${d}</div><div class="brk" style="grid-row:2;grid-column:2"></div><div class="roof" style="grid-row:2;grid-column:2 / span ${n+1}"></div>`;
+  for(const e of els){
+    if(e.from>k||(e.to!=null&&k>=e.to))continue;
+    const nw=animate&&e.from===k&&k>0?" new":"";
+    if(e.line){h+=`<div class="uline${nw}" style="grid-row:${e.r+1};grid-column:${e.c0+3} / ${e.c1+4}"></div>`;continue}
+    h+=`<div class="cell ${e.cls||""}${nw}${hl.has(e.r+":"+e.c)?" hl":""}" style="grid-row:${e.r+1};grid-column:${e.c+3}${e.dy?`;--dy:${e.dy}`:""}">${e.t}</div>`;
+  }
+  return h+"</div>";
+}
+
+const players=new Set();
+function stopAll(){players.forEach(p=>p.stop());players.clear()}
+function makePlayer(host,demo,{autoplay=false,written=true}={}){
+  const last=demo.frames.length-1;let k=0,timer=null;
+  host.innerHTML=`<div class="player">
+    <div class="boardwrap"></div>
+    <div class="cycle" aria-hidden="true"><span data-t="div">1 חלק</span><span data-t="mul">2 כפול</span><span data-t="sub">3 חסר</span><span data-t="down">4 הורד</span></div>
+    <p class="cap" aria-live="polite"></p>
+    <div class="pctl">
+      <button class="pbtn" data-a="prev">→ הקודם</button>
+      <button class="pbtn main" data-a="play">▶ הפעילי</button>
+      <button class="pbtn" data-a="next">הבא ←</button>
+      <span class="pcount"></span>
+      <button class="pbtn" data-a="restart">מההתחלה</button>
+    </div>
+    ${written?`<details class="written"><summary>כל השלבים בכתב</summary><ol class="steps">${demo.frames.map(f=>`<li>${f.cap}</li>`).join("")}</ol></details>`:""}
+  </div>`;
+  const $$=s=>host.querySelector(s), board=$$(".boardwrap"), cap=$$(".cap"), playB=$$('[data-a="play"]');
+  function show(i,animate){
+    k=Math.max(0,Math.min(last,i));
+    board.innerHTML=renderBoard(demo,k,animate);
+    cap.innerHTML=demo.frames[k].cap;
+    host.querySelectorAll(".cycle span").forEach(sp=>sp.classList.toggle("on",sp.dataset.t===demo.frames[k].tag));
+    host.querySelectorAll(".steps li").forEach((li,j)=>li.classList.toggle("cur",j===k));
+    $$(".pcount").textContent=`${k+1} / ${last+1}`;
+    $$('[data-a="prev"]').disabled=k===0;$$('[data-a="next"]').disabled=k===last;
+  }
+  const delay=()=>Math.min(8000,1800+cap.textContent.length*45);
+  function tick(){if(k>=last){stop();return}show(k+1,true);timer=setTimeout(tick,delay())}
+  function play(){if(timer)return;if(k>=last)show(0,false);playB.textContent="⏸ עצירה";timer=setTimeout(tick,k===0?1500:delay())}
+  function stop(){clearTimeout(timer);timer=null;playB.textContent=k>=last?"↻ שוב":"▶ הפעילי"}
+  playB.onclick=()=>timer?stop():play();
+  $$('[data-a="prev"]').onclick=()=>{stop();show(k-1,false)};
+  $$('[data-a="next"]').onclick=()=>{stop();show(k+1,true)};
+  $$('[data-a="restart"]').onclick=()=>{stop();show(0,false);play()};
+  const api={stop};players.add(api);
+  show(0,false);stop();
+  if(autoplay)play();
+  return api;
+}
+
+/* ---------- progress (per-browser) ---------- */
+const $=s=>document.querySelector(s), view=$("#view");
+const KEY="division-journey-v1";
+let prog={};
+try{prog=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){prog={}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(prog))}catch(e){}}
+const qid=(l,i)=>`${l}-${i}`;
+const lvlAnswered=l=>LEVELS[l].qs.filter((_,i)=>prog[qid(l,i)]).length;
+const lvlFirst=l=>LEVELS[l].qs.filter((_,i)=>prog[qid(l,i)]===1).length;
+const starsFor=l=>{const f=lvlFirst(l);return f>=9?3:f>=7?2:f>=4?1:0};
+const unlocked=l=>l===0||lvlAnswered(l-1)===LEVELS[l-1].qs.length;
+function updateTotal(){const t=Object.keys(prog).length;$("#totalLbl").textContent=`${t} / 100`;$("#totalBar").style.width=t+"%"}
+const starHTML=n=>`<span class="stars" aria-label="${n} כוכבים">${"★".repeat(n)}<span class="off">${"★".repeat(3-n)}</span></span>`;
+
+/* ---------- home ---------- */
+function home(){
+  stopAll();updateTotal();
+  const cur=LEVELS.findIndex((_,l)=>unlocked(l)&&lvlAnswered(l)<10);
+  view.innerHTML=`<section style="display:flex;flex-direction:column;gap:20px">
+    <div class="panel">
+      <h2>ככה עושים חילוק ארוך</h2>
+      <p>4 צעדים שחוזרים על עצמם: <b>חלק, כפול, חסר, הורד</b>. לחצי על "הפעילי" וצפי בהדגמה.</p>
+      <div id="homeDemo"></div>
+    </div>
+    <h2>היי גאיה! בחרי שלב</h2>
+    <div class="levels">${LEVELS.map((L,l)=>{
+      const a=lvlAnswered(l),done=a===10,open=unlocked(l);
+      const cls=done?"done":l===cur?"current":"";
+      const meta=!open?"נעול: סיימי את השלב הקודם":done?starHTML(starsFor(l)):a?`${a} מתוך 10`:"10 תרגילים";
+      return `<button class="lvl ${cls}" data-l="${l}" ${open?"":"disabled"}><span class="num">${l+1}</span><span class="name">${L.name}</span><span class="meta">${meta}</span></button>`}).join("")}
+    </div>
+    <div class="foot"><span>ההתקדמות נשמרת בדפדפן הזה. <a href="../gaia/">למסע השברים</a></span>${muteBtn()}<span id="resetZone"><button class="linkbtn" id="reset">להתחיל מחדש</button></span></div>
+  </section>`;
+  makePlayer($("#homeDemo"),buildDemo(72,4),{written:false});
+  view.querySelectorAll(".lvl").forEach(b=>b.onclick=()=>startLevel(+b.dataset.l));
+  bindMute();
+  $("#reset").onclick=()=>{
+    $("#resetZone").innerHTML=`<span class="confirm">למחוק את כל ההתקדמות? <button class="btn ghost" id="yes" style="padding:6px 14px;font-size:1rem">כן, למחוק</button><button class="linkbtn" id="no">ביטול</button></span>`;
+    $("#yes").onclick=()=>{prog={};save();home()};$("#no").onclick=home;
+  };
+}
+
+/* ---------- quiz ---------- */
+let L=0,I=0,tries=0,finished=false,demo=null;
+function startLevel(l){
+  L=l;
+  const first=LEVELS[l].qs.findIndex((_,i)=>!prog[qid(l,i)]);
+  I=first===-1?0:first;
+  if(first===-1){LEVELS[l].qs.forEach((_,i)=>delete prog[qid(l,i)]);save()}
+  showQ();
+}
+function showQ(){
+  stopAll();updateTotal();
+  tries=0;finished=false;
+  const Lv=LEVELS[L],q=Lv.qs[I];
+  demo=buildDemo(q.D,q.d);
+  const dots=Lv.qs.map((_,i)=>`<i class="${prog[qid(L,i)]?"r"+prog[qid(L,i)]:""} ${i===I?"now":""}"></i>`).join("");
+  const inputs=q.ans!=null
+    ?`<label class="fld"><span>${q.label}</span><input class="box" id="inA" inputmode="numeric" autocomplete="off"></label>`
+    :`<label class="fld"><span>מנה (התשובה)</span><input class="box" id="inQ" inputmode="numeric" autocomplete="off"></label>
+      <label class="fld"><span>שארית (אם אין, השאירי ריק)</span><input class="box sm" id="inR" inputmode="numeric" autocomplete="off"></label>`;
+  view.innerHTML=`<section class="wrap" style="gap:16px">
+    <div class="qhead"><button class="linkbtn" id="back">→ לכל השלבים</button><span class="where">שלב ${L+1} · תרגיל ${I+1} מתוך 10</span></div>
+    <div class="dots" aria-hidden="true">${dots}</div>
+    <details class="lesson" id="lesson" ${I===0?"open":""}><summary>תזכורת והדגמה: ${Lv.name}</summary>
+      <div class="body"><p>${Lv.lesson}</p><p>הנה דוגמה: ${m(`${Lv.ex[0]} ÷ ${Lv.ex[1]}`)}</p><div id="lessonDemo"></div></div></details>
+    <div class="card">
+      <p class="qtext">${q.t||"פתרי בחילוק ארוך:"}</p>
+      ${q.t?"":`<div class="expr">${q.D} ÷ ${q.d} = ?</div>`}
+      <div class="boardwrap">${renderBoard(demo,0,false)}</div>
+      <p class="paper">כדאי לפתור על דף, ואז לכתוב כאן את התשובה.</p>
+      <div class="ans">${inputs}</div>
+      <div id="fb"></div>
+      <div class="actions"><button class="btn" id="go">בדיקה</button><button class="btn ghost" id="show" hidden>תראי לי את הפתרון</button></div>
+      <div id="sol"></div>
+    </div></section>`;
+  $("#back").onclick=home;
+  let lessonPlayer=null;
+  const mountLesson=()=>{if(!lessonPlayer)lessonPlayer=makePlayer($("#lessonDemo"),buildDemo(...Lv.ex),{written:false})};
+  if(I===0)mountLesson();
+  $("#lesson").addEventListener("toggle",e=>{if(e.target.open)mountLesson()});
+  view.querySelectorAll(".box").forEach(x=>x.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("#go").click()}}));
+  view.querySelector(".box").focus({preventScroll:true});
+  $("#go").onclick=()=>finished?next():check();
+  $("#show").onclick=()=>{prog[qid(L,I)]=3;save();reveal("info",pickFrom(SHOWN))};
+}
+const num=v=>{v=v.trim();return v===""?null:/^\d+$/.test(v)?+v:NaN};
+function check(){
+  const q=LEVELS[L].qs[I],fb=$("#fb"),{D,d}=q,Q=Math.floor(D/d),R=D%d;
+  let ok,hint;
+  if(q.ans!=null){
+    const a=num($("#inA").value);
+    if(a===null||Number.isNaN(a)){fb.innerHTML=`<div class="fb info pop">כתבי מספר שלם.</div>`;return}
+    ok=a===q.ans;
+    hint=a===Q?`נכון ש־${m(`${D} ÷ ${d} = ${Q}`)}, אבל יש שארית. מה קורה עם הילדים שנשארו?`:`חשבי: כמה ילדים נכנסים ב־${m(Q)} אוטובוסים? ומה עם השאר?`;
+  }else{
+    const qq=num($("#inQ").value), rr0=num($("#inR").value);
+    if(qq===null){fb.innerHTML=`<div class="fb info pop">כתבי את המנה (התשובה) בתיבה הראשונה.</div>`;return}
+    if(Number.isNaN(qq)||Number.isNaN(rr0)){fb.innerHTML=`<div class="fb info pop">כתבי רק ספרות, בלי סימנים.</div>`;return}
+    const rr=rr0||0;
+    ok=qq===Q&&rr===R;
+    if(rr>=d)hint=`השארית ${m(rr)} לא יכולה להיות שווה ל־${m(d)} או גדולה ממנו. אם נשאר כל כך הרבה, אפשר לחלק עוד פעם.`;
+    else if(qq===Q)hint=`המנה ${m(qq)} נכונה! רק השארית לא. בדקי שוב את החיסור האחרון.`;
+    else if(String(Q).includes("0")&&String(qq)===String(Q).replace(/0/g,""))hint=`כמעט! שכחת 0 בתשובה. כשהמחלק לא נכנס אחרי שהורדת ספרה, כותבים 0 למעלה.`;
+    else{const v=qq*d+rr;hint=`בואי נבדוק: ${m(`${qq} × ${d}${rr?` + ${rr}`:""} = ${v}`)}, וזה ${v>D?"יותר":"פחות"} מ־${m(D)}. כלומר המנה ${v>D?"גדולה":"קטנה"} מדי.`}
+  }
+  tries++;
+  if(ok){prog[qid(L,I)]=tries===1?1:2;save();playRec("correct");reveal("good",pickFrom(tries===1?PRAISE:PRAISE_RETRY))}
+  else if(tries===1){
+    fb.innerHTML=`<div class="fb bad pop"><strong>${pickFrom(TRY_AGAIN)}</strong><p>רמז: ${hint}</p></div>`;
+    $("#show").hidden=false;
+  }else{prog[qid(L,I)]=3;save();reveal("info",pickFrom(SHOWN))}
+}
+function reveal(kind,title){
+  finished=true;
+  const q=LEVELS[L].qs[I];
+  const answer=q.ans!=null?`${q.ans}`:`${demo.Q}${demo.R?`, שארית ${demo.R}`:""}`;
+  $("#fb").innerHTML=`<div class="fb ${kind} pop"><strong>${title}</strong><p>${kind==="good"?"":"התשובה הנכונה: "}${kind==="good"?`התשובה ${m(answer)} נכונה.`:m(answer)}${q.note?" "+q.note:""}</p></div>`;
+  $("#sol").innerHTML=`<div class="solution"><h3>ככה פותרים את ${m(`${q.D} ÷ ${q.d}`)}, שלב אחרי שלב</h3><div id="solDemo"></div></div>`;
+  makePlayer($("#solDemo"),demo,{autoplay:true});
+  view.querySelectorAll(".box").forEach(x=>x.disabled=true);
+  $("#show").hidden=true;
+  const g=$("#go");g.textContent=I<9?"לתרגיל הבא ←":"לסיכום השלב";
+  updateTotal();
+}
+function next(){if(I<9){I++;showQ();window.scrollTo(0,0);return}result()}
+function result(){
+  stopAll();updateTotal();
+  const f=lvlFirst(L),s=starsFor(L),last=L===LEVELS.length-1,allDone=Object.keys(prog).length===100;
+  const msg=s===3?"מושלם, גאיה! את שולטת בזה, ואבי שמח בטירוף.":s===2?"עבודה טובה מאוד, גאיה. אבי גאה בך.":s===1?"התחלה טובה, גאיה. אפשר לחזור על השלב כדי לחזק, ואבי מאמין בך.":"זה בסדר, גאיה. כדאי לצפות שוב בהדגמה ולנסות את השלב מחדש. אבי בטוח שתצליחי.";
+  playRec(allDone&&RECORDINGS.finale.length?"finale":"levelDone");
+  view.innerHTML=`<div class="card result pop">
+    <h2>כל הכבוד גאיה! סיימת את שלב ${L+1}: ${LEVELS[L].name}</h2>
+    <div class="big">${starHTML(s)}</div>
+    <p>${f} מתוך 10 נכונים בניסיון הראשון. ${msg}</p>
+    ${allDone?`<p><b>גאיה דור, סיימת את כל 100 התרגילים של מסע החילוק הארוך! אבי כל כך גאה בך. כל הכבוד!</b></p>`:""}
+    <div class="actions" style="justify-content:center">
+      ${last?"":`<button class="btn" id="nx">לשלב ${L+2} ←</button>`}
+      <button class="btn ghost" id="again">לנסות שוב את השלב</button>
+      <button class="btn ghost" id="map">לכל השלבים</button>
+    </div></div>`;
+  $("#nx")&&($("#nx").onclick=()=>startLevel(L+1));
+  $("#again").onclick=()=>{LEVELS[L].qs.forEach((_,i)=>delete prog[qid(L,i)]);save();startLevel(L)};
+  $("#map").onclick=home;
+  window.scrollTo(0,0);
+}
+home();
+</script>
+</body>
+</html>

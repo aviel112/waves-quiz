@@ -412,7 +412,7 @@ function home(){
       return `<button class="lvl ${cls}" data-l="${l}" ${open?"":"disabled"}>
         <span class="num">${l+1}</span><span class="name">${L.name}</span><span class="meta">${meta}</span></button>`}).join("")}
     </div>
-    <div class="foot"><span>ההתקדמות נשמרת בדפדפן הזה.</span>${muteBtn()}<span id="resetZone"><button class="linkbtn" id="reset">להתחיל מחדש</button></span></div>
+    <div class="foot"><span>ההתקדמות נשמרת בדפדפן הזה. <a href="https://aviel112.github.io/waves-quiz/gaia-division/" style="color:var(--teal)">למסע החילוק הארוך</a></span>${muteBtn()}<span id="resetZone"><button class="linkbtn" id="reset">להתחיל מחדש</button></span></div>
   </section>`;
   view.querySelectorAll(".lvl").forEach(b=>b.onclick=()=>startLevel(+b.dataset.l));
   bindMute();
