@@ -33,6 +33,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   padding-block:max(24px,env(safe-area-inset-top,0px)) max(48px,env(safe-area-inset-bottom,0px))}
 .wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+#view{display:flex;flex-direction:column;gap:18px}
 h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;line-height:1.2}
 h1{font-size:2.1rem} h2{font-size:1.45rem} h3{font-size:1.15rem}
 p{margin:0}
@@ -104,6 +105,7 @@ bdi.m{direction:ltr;unicode-bidi:isolate;white-space:nowrap;font-variant-numeric
 @media (prefers-reduced-motion:reduce){.pop{animation:none}.bar>i{transition:none}}
 @media (max-width:440px){h1{font-size:1.75rem}.card{padding:18px}.expr{font-size:1.5rem}.choice{font-size:1.1rem}.box{width:150px}}
 </style>
+<script src="../gaia-daily.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -296,7 +298,8 @@ const firstCount=()=>st.res.filter(r=>r==="first").length;
 /* ---------- start ---------- */
 function start(){
   const inProgress=st&&!st.done&&(st.pos>0||st.alt>0);
-  view.innerHTML=`<div class="card">
+  view.innerHTML=`${window.GaiaDaily?GaiaDaily.missionHTML():""}
+  <div class="card">
     <h2>היי גאיה! מוכנה?</h2>
     <p>במבחן הזה יש <b>${TOPICS.length} שאלות, אחת מכל נושא</b> שהמורות כתבו בדף הנושאים למבחן תחילת השנה. אם תעני לא נכון, תקבלי הסבר קצר ואז <b>שאלה מחליפה</b> באותו נושא, עד 3 פעמים. בסוף תראי ציון ואילו נושאים כדאי לתרגל עוד.</p>
     <p class="sub">כדאי להחזיק דף ועיפרון בצד.</p>
@@ -439,6 +442,5 @@ function report(){
 }
 st&&st.done?report():start();
 </script>
-<script src="../gaia-timer.js" defer></script>
 </body>
 </html>

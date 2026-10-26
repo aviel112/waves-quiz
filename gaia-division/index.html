@@ -133,6 +133,7 @@ details.written summary{cursor:pointer;color:var(--accent)}
 @media (prefers-reduced-motion:reduce){.pop,.board .new,.board .new.down,.board .uline.new{animation:none}.bar>i{transition:none}}
 @media (max-width:440px){h1{font-size:1.75rem}.card{padding:18px}.board{font-size:1.5rem}.expr{font-size:1.7rem}.box{width:120px}}
 </style>
+<script src="../gaia-daily.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -439,6 +440,7 @@ function home(){
   stopAll();updateTotal();
   const cur=LEVELS.findIndex((_,l)=>unlocked(l)&&lvlAnswered(l)<10);
   view.innerHTML=`<section style="display:flex;flex-direction:column;gap:20px">
+    ${window.GaiaDaily?GaiaDaily.missionHTML():""}
     <div class="panel">
       <h2>ככה עושים חילוק ארוך</h2>
       <p>4 צעדים שחוזרים על עצמם: <b>חלק, כפול, חסר, הורד</b>. לחצי על "הפעילי" וצפי בהדגמה.</p>
@@ -452,6 +454,7 @@ function home(){
       return `<button class="lvl ${cls}" data-l="${l}" ${open?"":"disabled"}><span class="num">${l+1}</span><span class="name">${L.name}</span><span class="meta">${meta}</span></button>`}).join("")}
     </div>
     <div class="foot"><span>ההתקדמות נשמרת בדפדפן הזה. <a href="../gaia/">למסע השברים</a></span>${muteBtn()}<span id="resetZone"><button class="linkbtn" id="reset">להתחיל מחדש</button></span></div>
+    ${window.GaiaDaily?GaiaDaily.logHTML():""}
   </section>`;
   makePlayer($("#homeDemo"),buildDemo(72,4),{written:false});
   view.querySelectorAll(".lvl").forEach(b=>b.onclick=()=>startLevel(+b.dataset.l));
@@ -468,10 +471,12 @@ let cq=null;          // the exercise on screen: the level's own, or a similar o
 let alt=0;            // how many similar exercises were given for this one
 let failed=false;     // the exercise on screen was not solved
 let used=new Set();
+let reviewShown=false;  // the explanation was reopened after misses in this level
+let levelMisses=0;      // exercises missed in this level (even if a similar one was solved later)
 const MAX_ALT=3;
 const ALT_PRAISE=["עכשיו זה יושב! אבי שמח, גאיה.","רואה? למדת את זה! כל הכבוד גאיה.","תיקון של אלופה! אבי גאה בך.","יש! הפעם הצלחת, ואבי מוחא כפיים."];
 function startLevel(l){
-  L=l;
+  L=l;reviewShown=false;levelMisses=0;
   const first=LEVELS[l].qs.findIndex((_,i)=>!prog[qid(l,i)]);
   I=first===-1?0:first;
   if(first===-1){LEVELS[l].qs.forEach((_,i)=>delete prog[qid(l,i)]);save()}
@@ -483,6 +488,9 @@ function render(){
   tries=0;finished=false;failed=false;
   const Lv=LEVELS[L],q=cq;
   used.add(q.D+"/"+q.d);
+  // two misses in this level: open the explanation and demo again, once
+  const review=!alt&&!reviewShown&&levelMisses>=2;
+  if(review)reviewShown=true;
   demo=buildDemo(q.D,q.d);
   const dots=Lv.qs.map((_,i)=>`<i class="${prog[qid(L,i)]?"r"+prog[qid(L,i)]:""} ${i===I?"now":""}"></i>`).join("");
   const inputs=q.ans!=null
@@ -492,7 +500,8 @@ function render(){
   view.innerHTML=`<section class="wrap" style="gap:16px">
     <div class="qhead"><button class="linkbtn" id="back">→ לכל השלבים</button><span class="where">שלב ${L+1} · תרגיל ${I+1} מתוך 10${alt?" · תרגיל דומה":""}</span></div>
     <div class="dots" aria-hidden="true">${dots}</div>
-    <details class="lesson" id="lesson" ${I===0&&!alt?"open":""}><summary>תזכורת והדגמה: ${Lv.name}</summary>
+    ${review?`<div class="fb info pop"><strong>בואי נחזור רגע על ההסבר, גאיה</strong><p>היו כמה תרגילים קשים בשלב הזה. צפי שוב בהדגמה כאן למטה, ואז ממשיכים. זה יעזור!</p></div>`:""}
+    <details class="lesson" id="lesson" ${(I===0&&!alt)||review?"open":""}><summary>תזכורת והדגמה: ${Lv.name}</summary>
       <div class="body"><p>${Lv.lesson}</p><p>הנה דוגמה: ${m(`${Lv.ex[0]} ÷ ${Lv.ex[1]}`)}</p><div id="lessonDemo"></div></div></details>
     <div class="card">
       ${alt?`<div class="fb info"><strong>${alt===1?"תרגיל דומה במקום הקודם":"עוד תרגיל דומה"}</strong><p>${alt===1?"בואי ננסה תרגיל מאותו סוג, עם מה שראית עכשיו בהדגמה.":"לאט ובסדר: חלק, כפול, חסר, הורד. את יכולה!"}</p></div>`:""}
@@ -508,7 +517,7 @@ function render(){
   $("#back").onclick=home;
   let lessonPlayer=null;
   const mountLesson=()=>{if(!lessonPlayer)lessonPlayer=makePlayer($("#lessonDemo"),buildDemo(...Lv.ex),{written:false})};
-  if(I===0)mountLesson();
+  if((I===0&&!alt)||review)mountLesson();
   $("#lesson").addEventListener("toggle",e=>{if(e.target.open)mountLesson()});
   view.querySelectorAll(".box").forEach(x=>x.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("#go").click()}}));
   view.querySelector(".box").focus({preventScroll:true});
@@ -517,7 +526,7 @@ function render(){
   $("#skip").onclick=advance;
 }
 function missed(){
-  if(!alt){prog[qid(L,I)]=3;save()}
+  if(!alt){prog[qid(L,I)]=3;save();levelMisses++}
   failed=true;
   reveal("info",pickFrom(SHOWN));
 }
@@ -580,6 +589,7 @@ function result(){
   const f=lvlFirst(L),s=starsFor(L),last=L===LEVELS.length-1,allDone=Object.keys(prog).length===100;
   const msg=s===3?"מושלם, גאיה! את שולטת בזה, ואבי שמח בטירוף.":s===2?"עבודה טובה מאוד, גאיה. אבי גאה בך.":s===1?"התחלה טובה, גאיה. אפשר לחזור על השלב כדי לחזק, ואבי מאמין בך.":"זה בסדר, גאיה. כדאי לצפות שוב בהדגמה ולנסות את השלב מחדש. אבי בטוח שתצליחי.";
   playRec(allDone&&RECORDINGS.finale.length?"finale":"levelDone");
+  window.GaiaDaily&&GaiaDaily.levelDone("division",L,f);
   view.innerHTML=`<div class="card result pop">
     <h2>כל הכבוד גאיה! סיימת את שלב ${L+1}: ${LEVELS[L].name}</h2>
     <div class="big">${starHTML(s)}</div>
@@ -595,8 +605,17 @@ function result(){
   $("#map").onclick=home;
   window.scrollTo(0,0);
 }
-home();
+// a link from today's mission (e.g. #L3) opens that level directly
+function openFromHash(){
+  const mm=location.hash.match(/^#L(\d+)$/);
+  if(!mm)return false;
+  history.replaceState(null,"",location.pathname);
+  const l=+mm[1]-1;
+  if(LEVELS[l]&&unlocked(l)){startLevel(l);window.scrollTo(0,0);return true}
+  return false;
+}
+window.addEventListener("hashchange",openFromHash);
+openFromHash()||home();
 </script>
-<script src="../gaia-timer.js" defer></script>
 </body>
 </html>

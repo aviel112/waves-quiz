@@ -130,6 +130,7 @@ header.top .sub{color:var(--muted)}
   .choice{font-size:1.3rem}
 }
 </style>
+<script src="../gaia-daily.js"></script>
 </head>
 <body>
 
@@ -404,6 +405,7 @@ function home(){
   updateTotal();
   let cur=LEVELS.findIndex((_,l)=>unlocked(l)&&lvlAnswered(l)<10);
   view.innerHTML=`<section style="display:flex;flex-direction:column;gap:16px">
+    ${window.GaiaDaily?GaiaDaily.missionHTML():""}
     <h2>היי גאיה! בחרי שלב</h2>
     <div class="levels">${LEVELS.map((L,l)=>{
       const a=lvlAnswered(l),done=a===10,open=unlocked(l);
@@ -413,6 +415,7 @@ function home(){
         <span class="num">${l+1}</span><span class="name">${L.name}</span><span class="meta">${meta}</span></button>`}).join("")}
     </div>
     <div class="foot"><span>ההתקדמות נשמרת בדפדפן הזה. <a href="https://aviel112.github.io/waves-quiz/gaia-division/" style="color:var(--teal)">למסע החילוק הארוך</a></span>${muteBtn()}<span id="resetZone"><button class="linkbtn" id="reset">להתחיל מחדש</button></span></div>
+    ${window.GaiaDaily?GaiaDaily.logHTML():""}
   </section>`;
   view.querySelectorAll(".lvl").forEach(b=>b.onclick=()=>startLevel(+b.dataset.l));
   bindMute();
@@ -425,17 +428,75 @@ function home(){
 
 /* ---------- quiz ---------- */
 let L=0,I=0,tries=0,sel=null,finished=false;
+let cq=null;            // the question on screen: the level's own, or a similar one after a miss
+let alt=0;              // how many similar questions were given for this one
+let failed=false;       // the question on screen was not solved
+let reviewShown=false;  // the explanation was reopened after misses in this level
+let levelMisses=0;      // questions missed in this level (even if a similar one was solved later)
+const MAX_ALT=3;
+const ALT_PRAISE=["עכשיו זה יושב! אבי שמח, גאיה.","רואה? למדת את זה! כל הכבוד גאיה.","תיקון של אלופה! אבי גאה בך.","יש! הפעם הצלחת, ואבי מוחא כפיים."];
+
+/* ---------- a similar question (same level, new numbers) after a miss ---------- */
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pickOne=a=>a[Math.floor(Math.random()*a.length)];
+const lcm=(a,b)=>a/gcd(a,b)*b;
+const F=(n,d)=>`[${n}/${d}]`;
+const reduce=(n,d)=>{const g=gcd(n,d);return [n/g,d/g]};
+const mixedOf=(n,d)=>{const w=Math.floor(n/d),r=n%d;return !r?`${w}`:w?`${w}[${r}/${d}]`:F(r,d)};
+const properPair=(lo,hi)=>{let a,b;do{b=rnd(lo,hi);a=rnd(1,b-1)}while(gcd(a,b)>1);return [a,b]};
+function choices(right,others){const out=[right];for(const x of others){if(out.length>=4)break;if(x&&!out.includes(x))out.push(x)}return out}
+const SIMILAR=[
+ q=>{const d=rnd(3,10),n=rnd(1,d-1),shape=pickOne(["pie","bar"]),w=shape==="pie"?"העיגול":"המלבן";
+   return {k:"mc",t:`איזה חלק מ${w} צבוע?`,p:[shape,n,d],ch:choices(F(n,d),[d-n!==n?F(d-n,d):"",F(n,d+1),F(d,n),n+1<d?F(n+1,d):"",n>1?F(n-1,d):""]),a:F(n,d),
+     ex:`${w} מחולק ל־${d} חלקים שווים, ו־${n} מהם צבועים. לכן ${F(n,d)}.`}},
+ q=>{if(q.k==="frac"){const d=rnd(3,12),n=rnd(1,d-1);return {k:"frac",t:`כמה חסר ל־${F(n,d)} כדי להגיע לשלם?`,a:[d-n,d],ex:`שלם הוא ${F(d,d)}. חסרים ${d} − ${n} = ${d-n} חלקים: ${F(d-n,d)}.`}}
+   if(q.k==="num"){const d=rnd(3,12);return {k:"num",t:`כמה ${F(1,d)} יש בשלם אחד?`,a:d,ex:`שלם מחולק ל־${d} חלקים שווים: ${F(d,d)} = 1.`}}
+   const d=rnd(5,12),ns=shuffle([...Array(d-1)].map((_,i)=>i+1)).slice(0,4),big=Math.random()<.5,n=big?Math.max(...ns):Math.min(...ns);
+   return {k:"mc",t:`איזה שבר הכי ${big?"גדול":"קטן"}?`,ch:ns.map(x=>F(x,d)),a:F(n,d),ex:`לכולם אותו מכנה, ${d}, אז משווים את המונים. ל־${F(n,d)} המונה ה${big?"גדול":"קטן"} ביותר.`}},
+ q=>{let n1,d1,n2,d2;do{[n1,d1]=properPair(2,12);[n2,d2]=properPair(2,12)}while(d1===d2||n1*d2===n2*d1||lcm(d1,d2)>60);
+   const big=n1*d2>n2*d1?F(n1,d1):F(n2,d2),c=lcm(d1,d2);
+   return {k:"mc",t:"איזה שבר גדול יותר?",ch:[F(n1,d1),F(n2,d2)],a:big,ex:`מכנה משותף ${c}: ${F(n1,d1)} = ${F(n1*c/d1,c)} ו־${F(n2,d2)} = ${F(n2*c/d2,c)}. לכן ${big} גדול יותר.`}},
+ q=>{const [a,b]=properPair(2,9),k=rnd(2,6);
+   return Math.random()<.5
+     ?{k:"num",t:"השלימי את המספר החסר:",e:`${F(a,b)} = [?/${b*k}]`,a:a*k,ex:`${b} × ${k} = ${b*k}, אז גם ${a} × ${k} = ${a*k}.`}
+     :{k:"num",t:"השלימי את המספר החסר:",e:`${F(a,b)} = [${a*k}/?]`,a:b*k,ex:`${a} × ${k} = ${a*k}, אז גם ${b} × ${k} = ${b*k}.`}},
+ q=>{const [a,b]=properPair(2,10),k=rnd(2,8);
+   return {k:"frac",s:1,t:"צמצמי עד הסוף:",e:F(a*k,b*k),a:[a,b],ex:`מחלקים את המונה ואת המכנה ב־${k}: ${F(a,b)}.`}},
+ q=>{const d=rnd(5,12),plus=Math.random()<.5;let x,y;if(plus){x=rnd(1,d-2);y=rnd(1,d-1-x)}else{x=rnd(2,d-1);y=rnd(1,x-1)}
+   const c=plus?x+y:x-y,[rn,rd]=reduce(c,d);
+   return {k:"frac",t:"פתרי:",e:`${F(x,d)} ${plus?"+":"−"} ${F(y,d)} = ?`,a:[c,d],ex:`${x} ${plus?"+":"−"} ${y} = ${c}, המכנה נשאר ${d}: ${F(c,d)}${rd!==d?`, ואחרי צמצום ${F(rn,rd)}`:""}.`}},
+ q=>{const d=rnd(2,6),w=rnd(1,5),r=rnd(1,d-1),N=w*d+r;
+   if(q.k==="frac")return {k:"frac",t:`כתבי את ${w}[${r}/${d}] כשבר (מונה ומכנה):`,a:[N,d],ex:`${w} × ${d} + ${r} = ${N}, לכן ${F(N,d)}.`};
+   if(q.k==="num")return {k:"num",t:`כמה שלמים יש ב־${F(w*d,d)}?`,a:w,ex:`${w*d} ÷ ${d} = ${w} בדיוק, בלי שארית.`};
+   return {k:"mc",t:`כתבי את ${F(N,d)} כמספר מעורב:`,ch:choices(`${w}[${r}/${d}]`,[`${w+1}[${r}/${d}]`,`${w}[${r}/${N}]`,w>1?`${w-1}[${r}/${d}]`:`${w+2}[${r}/${d}]`,d-r!==r?`${w}[${d-r}/${d}]`:""]),a:`${w}[${r}/${d}]`,
+     ex:`${N} ÷ ${d} = ${w} ושארית ${r}, לכן ${w}[${r}/${d}].`}},
+ q=>{let n1,d1,n2,d2,plus;do{[n1,d1]=properPair(2,12);[n2,d2]=properPair(2,12);plus=Math.random()<.5}while(d1===d2||lcm(d1,d2)>24||(!plus&&n1*d2<=n2*d1));
+   const c=lcm(d1,d2),a1=n1*c/d1,a2=n2*c/d2,r=plus?a1+a2:a1-a2,[rn,rd]=reduce(r,c);
+   return {k:"frac",t:"פתרי:",e:`${F(n1,d1)} ${plus?"+":"−"} ${F(n2,d2)} = ?`,a:[rn,rd],
+     ex:`מכנה משותף ${c}: ${F(a1,c)} ${plus?"+":"−"} ${F(a2,c)} = ${F(r,c)}${rd!==c?` = ${F(rn,rd)}`:""}${rn>rd?`, כלומר ${mixedOf(rn,rd)}`:""}.`}},
+ q=>{if(q.k==="num"){const [a,b]=properPair(2,9),N=b*rnd(2,9);return {k:"num",t:`כמה זה ${F(a,b)} מ־${N}?`,a:N/b*a,ex:`${N} ÷ ${b} = ${N/b}, ו־${N/b} × ${a} = ${N/b*a}.`}}
+   const [a,b]=properPair(2,9),[c,d]=properPair(2,9),[rn,rd]=reduce(a*c,b*d);
+   return {k:"frac",t:"פתרי:",e:`${F(a,b)} × ${F(c,d)} = ?`,a:[rn,rd],ex:`מונה כפול מונה, ומכנה כפול מכנה: ${F(a*c,b*d)}${rd!==b*d?` = ${F(rn,rd)}`:""}.`}},
+ q=>{if(q.k==="num"){const N=rnd(2,6),d=rnd(2,8);return {k:"num",t:"פתרי:",e:`${N} ÷ ${F(1,d)} = ?`,a:N*d,ex:`בכל שלם יש ${d} חלקים של ${F(1,d)}, אז ב־${N} שלמים יש ${N} × ${d} = ${N*d}.`}}
+   const [a,b]=properPair(2,9),[c,d]=properPair(2,9),[rn,rd]=reduce(a*d,b*c);
+   return {k:"frac",t:"פתרי:",e:`${F(a,b)} ÷ ${F(c,d)} = ?`,a:[rn,rd],ex:`לחלק בשבר זה לכפול בהופכי שלו: ${F(a,b)} × ${F(d,c)} = ${F(a*d,b*c)}${rd!==b*c?` = ${F(rn,rd)}`:""}.`}}
+];
+
 function startLevel(l){
-  L=l;
+  L=l;reviewShown=false;levelMisses=0;
   const first=LEVELS[l].qs.findIndex((_,i)=>!prog[qid(l,i)]);
   I=first===-1?0:first;
   if(first===-1){LEVELS[l].qs.forEach((_,i)=>delete prog[qid(l,i)]);save()}
   showQ();
 }
-function showQ(){
+function showQ(){alt=0;cq=LEVELS[L].qs[I];render()}
+function render(){
   updateTotal();
-  tries=0;sel=null;finished=false;
-  const Lv=LEVELS[L],q=Lv.qs[I];
+  tries=0;sel=null;finished=false;failed=false;
+  const Lv=LEVELS[L],q=cq;
+  // two misses in this level: open the explanation again, once
+  const review=!alt&&!reviewShown&&levelMisses>=2;
+  if(review)reviewShown=true;
   const dots=Lv.qs.map((_,i)=>`<i class="${prog[qid(L,i)]?"r"+prog[qid(L,i)]:""} ${i===I?"now":""}"></i>`).join("");
   let body="";
   if(q.k==="mc"){
@@ -446,18 +507,21 @@ function showQ(){
     body=`<div class="inrow"><input class="box" id="inX" inputmode="numeric" autocomplete="off" aria-label="התשובה"></div>`;
   }
   view.innerHTML=`<section class="wrap" style="gap:16px">
-    <div class="qhead"><button class="linkbtn" id="back">→ לכל השלבים</button><span class="where">שלב ${L+1} · שאלה ${I+1} מתוך 10</span></div>
+    <div class="qhead"><button class="linkbtn" id="back">→ לכל השלבים</button><span class="where">שלב ${L+1} · שאלה ${I+1} מתוך 10${alt?" · שאלה דומה":""}</span></div>
     <div class="dots" aria-hidden="true">${dots}</div>
-    <details class="lesson" ${I===0?"open":""}><summary>תזכורת: ${Lv.name}</summary><p>${fmt(Lv.lesson)}</p></details>
+    ${review?`<div class="fb info pop"><strong>בואי נחזור רגע על ההסבר, גאיה</strong><p>היו כמה שאלות קשות בשלב הזה. קראי את התזכורת כאן למטה, ואז ממשיכים. זה יעזור!</p></div>`:""}
+    <details class="lesson" ${(I===0&&!alt)||review?"open":""}><summary>תזכורת: ${Lv.name}</summary><p>${fmt(Lv.lesson)}</p></details>
     <div class="card">
+      ${alt?`<div class="fb info"><strong>${alt===1?"שאלה דומה במקום הקודמת":"עוד שאלה דומה"}</strong><p>${alt===1?"בואי ננסה שאלה מאותו סוג, עם מה שלמדת מההסבר.":"לאט ובסדר. את יכולה!"}</p></div>`:""}
       <p class="qtext">${fmt(q.t)}</p>
       ${q.e?`<div class="expr">${fmt(q.e)}</div>`:""}
       ${q.p?`<div class="pic">${pic(q.p)}</div>`:""}
       ${body}
       <div id="fb"></div>
-      <div class="actions"><button class="btn" id="go" ${q.k==="mc"?"disabled":""}>בדיקה</button></div>
+      <div class="actions"><button class="btn" id="go" ${q.k==="mc"?"disabled":""}>בדיקה</button><button class="linkbtn" id="skip" hidden>לדלג לשאלה הבאה</button></div>
     </div></section>`;
   $("#back").onclick=home;
+  $("#skip").onclick=advance;
   if(q.k==="mc"){
     view.querySelectorAll(".choice").forEach(b=>b.onclick=()=>{
       if(finished)return;
@@ -487,13 +551,15 @@ function readAnswer(q){
   return {ok:eq,notSimple:eq&&gcd(N,D)!==1};
 }
 function check(){
-  const q=LEVELS[L].qs[I],r=readAnswer(q),fb=$("#fb");
+  const q=cq,r=readAnswer(q),fb=$("#fb");
   if(!r)return;
   if(r.msg){fb.innerHTML=`<div class="fb info pop">${r.msg}</div>`;return}
   tries++;
   if(r.ok){
-    prog[qid(L,I)]=tries===1?1:2;save();
-    const praise=pickFrom(tries===1?PRAISE:PRAISE_RETRY);
+    // a similar question solved turns the original miss into "corrected"
+    if(alt){if(prog[qid(L,I)]===3)prog[qid(L,I)]=2}else prog[qid(L,I)]=tries===1?1:2;
+    save();
+    const praise=pickFrom(alt?ALT_PRAISE:tries===1?PRAISE:PRAISE_RETRY);
     playRec("correct");
     fb.innerHTML=`<div class="fb good pop"><strong>${fmt(praise)}</strong><p>${fmt(q.ex)}${r.notSimple?" (התשובה שלך נכונה, וכדאי להתרגל לצמצם עד הסוף.)":""}</p></div>`;
     markChoices(q);done();
@@ -501,7 +567,8 @@ function check(){
     fb.innerHTML=`<div class="fb bad pop"><strong>${pickFrom(TRY_AGAIN)}</strong><p>רמז: ${fmt(LEVELS[L].tip)}</p></div>`;
     if(q.k==="mc")view.querySelector(".choice.sel")?.classList.add("wrong");
   }else{
-    prog[qid(L,I)]=3;save();
+    if(!alt){prog[qid(L,I)]=3;save();levelMisses++}
+    failed=true;
     fb.innerHTML=`<div class="fb info pop"><strong>התשובה הנכונה: <span style="font-family:var(--body)">${fmt(q.k==="mc"?q.a:q.k==="num"?String(q.a):`[${q.a[0]}/${q.a[1]}]`)}</span></strong><p>${fmt(q.ex)}</p></div>`;
     markChoices(q);done();
   }
@@ -513,11 +580,18 @@ function markChoices(q){
 function done(){
   finished=true;
   view.querySelectorAll(".box").forEach(x=>x.disabled=true);
-  const g=$("#go");g.textContent=I<9?"לשאלה הבאה ←":"לסיכום השלב";g.focus({preventScroll:true});
+  const g=$("#go");
+  if(failed&&alt<MAX_ALT){g.textContent=alt?"לעוד שאלה דומה ←":"לשאלה דומה ←";$("#skip").hidden=false}
+  else g.textContent=I<9?"לשאלה הבאה ←":"לסיכום השלב";
+  g.focus({preventScroll:true});
   updateTotal();
 }
 function next(){
-  if(I<9){I++;showQ();return}
+  if(failed&&alt<MAX_ALT){alt++;cq=SIMILAR[L](LEVELS[L].qs[I]);render();window.scrollTo(0,0);return}
+  advance();
+}
+function advance(){
+  if(I<9){I++;showQ();window.scrollTo(0,0);return}
   result();
 }
 function result(){
@@ -526,6 +600,7 @@ function result(){
   const msg=s===3?"מושלם, גאיה! את שולטת בזה, ואבי שמח בטירוף.":s===2?"עבודה טובה מאוד, גאיה. אבי גאה בך.":s===1?"התחלה טובה, גאיה. אפשר לחזור על השלב כדי לחזק, ואבי מאמין בך.":"זה בסדר, גאיה. כדאי לקרוא שוב את התזכורת ולנסות את השלב מחדש. אבי בטוח שתצליחי.";
   const allDone=Object.keys(prog).length===100;
   playRec(allDone&&RECORDINGS.finale.length?"finale":"levelDone");
+  window.GaiaDaily&&GaiaDaily.levelDone("fractions",L,f);
   view.innerHTML=`<div class="card result pop">
     <h2>כל הכבוד גאיה! סיימת את שלב ${L+1}: ${LEVELS[L].name}</h2>
     <div class="big">${starHTML(s)}</div>
@@ -539,9 +614,19 @@ function result(){
   $("#nx")&&($("#nx").onclick=()=>startLevel(L+1));
   $("#again").onclick=()=>{LEVELS[L].qs.forEach((_,i)=>delete prog[qid(L,i)]);save();startLevel(L)};
   $("#map").onclick=home;
+  window.scrollTo(0,0);
 }
-home();
+// a link from today's mission (e.g. #L3) opens that level directly
+function openFromHash(){
+  const m=location.hash.match(/^#L(\d+)$/);
+  if(!m)return false;
+  history.replaceState(null,"",location.pathname);
+  const l=+m[1]-1;
+  if(LEVELS[l]&&unlocked(l)){startLevel(l);window.scrollTo(0,0);return true}
+  return false;
+}
+window.addEventListener("hashchange",openFromHash);
+openFromHash()||home();
 </script>
-<script src="../gaia-timer.js" defer></script>
 </body>
 </html>
