@@ -4,7 +4,7 @@
   "lang": "he",
   "dir": "rtl",
   "start_url": "./",
-  "scope": "./",
+  "scope": "../",
   "display": "standalone",
   "background_color": "#EEF3F9",
   "theme_color": "#16325C",

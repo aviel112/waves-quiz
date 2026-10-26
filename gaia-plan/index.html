@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>התוכנית של גאיה</title>
+<meta name="theme-color" content="#1F4D40">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="התוכנית">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Secular+One&family=Varela+Round&display=swap">
+<style>
+/* Layout: one column. Today's mission first, then what she knows, the skill map, the next days, test scores, the log */
+:root{
+  --bg:#EDF3F0; --surface:#FFFFFF; --surface2:#D5E5DD; --ink:#15261F; --muted:#56706A;
+  --accent:#23715C; --accent-ink:#FFFFFF; --berry:#C93A60; --line:#C1D7CD;
+  --display:"Secular One","Varela Round",system-ui,sans-serif;
+  --body:"Varela Round",system-ui,"Segoe UI",Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#101A16; --surface:#18261F; --surface2:#25392F; --ink:#E3EFE9; --muted:#97B0A6;
+  --accent:#5CC9A7; --accent-ink:#0B1A14; --berry:#F0728F; --line:#2E463B; color-scheme:dark}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:max(24px,env(safe-area-inset-top,0px)) max(48px,env(safe-area-inset-bottom,0px))}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;line-height:1.2}
+h1{font-size:2.1rem} h2{font-size:1.4rem} h3{font-size:1.1rem}
+p{margin:0}
+a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.sub{color:var(--muted)}
+.sites{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.site{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:16px;background:var(--surface);border:2px solid var(--line);color:var(--ink);text-decoration:none}
+.site:hover{border-color:var(--accent)}
+.site b{font-family:var(--display);font-weight:400;font-size:1.1rem}
+.site span{font-size:.82rem;color:var(--muted);line-height:1.35}
+.log{background:var(--surface);border-radius:20px;padding:16px 20px}
+@media (max-width:520px){h1{font-size:1.75rem}.sites{grid-template-columns:1fr}}
+</style>
+<script src="../gaia-daily.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>התוכנית של גאיה</h1>
+    <p class="sub">מה עושים היום, מה כבר למדת, ומה הלאה. התוכנית מתעדכנת אחרי כל תרגול ואחרי כל מבחן.</p>
+  </header>
+  <main class="wrap" id="view" style="max-width:none"></main>
+</div>
+<script>
+const view=document.getElementById("view");
+function render(){
+  if(!window.GaiaDaily){view.innerHTML=`<p>לא הצלחתי לטעון את התוכנית. נסי לרענן את הדף.</p>`;return}
+  view.innerHTML=`${GaiaDaily.missionHTML({onPlan:true})}
+    ${GaiaDaily.progressHTML()}
+    <nav class="sites" aria-label="אתרי התרגול">
+      <a class="site" href="../gaia/"><b>מסע השברים</b><span>10 שלבים, מזיהוי שבר ועד חילוק שברים</span></a>
+      <a class="site" href="../gaia-division/"><b>מסע החילוק הארוך</b><span>10 שלבים, עם הדגמה שלב אחרי שלב</span></a>
+      <a class="site" href="../gaia-test/"><b>המבחן ותרגול לפי נושא</b><span>20 נושאים של מבחן תחילת השנה</span></a>
+    </nav>
+    <div class="log">${GaiaDaily.logHTML()}</div>`;
+}
+render();
+// coming back to this tab after practicing elsewhere: show the latest
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")render()});
+</script>
+</body>
+</html>

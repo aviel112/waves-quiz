@@ -6,13 +6,14 @@
 <title>מעבירים…</title>
 <script>
 // Send mistyped Gaia addresses (any letter case) to the right site
-if (/test/i.test(location.pathname)) location.replace("/waves-quiz/gaia-test/");
+if (/plan/i.test(location.pathname)) location.replace("/waves-quiz/gaia-plan/");
+else if (/test/i.test(location.pathname)) location.replace("/waves-quiz/gaia-test/");
 else if (/division/i.test(location.pathname)) location.replace("/waves-quiz/gaia-division/");
 else if (/gaia/i.test(location.pathname)) location.replace("/waves-quiz/gaia/");
 </script>
 </head>
 <body style="font-family:system-ui,sans-serif;text-align:center;padding:40px 16px">
 <p>הדף לא נמצא.</p>
-<p><a href="/waves-quiz/">לדף הראשי</a> · <a href="/waves-quiz/gaia/">מסע השברים של גאיה</a> · <a href="/waves-quiz/gaia-division/">מסע החילוק של גאיה</a> · <a href="/waves-quiz/gaia-test/">המבחן של גאיה</a></p>
+<p><a href="/waves-quiz/">לדף הראשי</a> · <a href="/waves-quiz/gaia/">מסע השברים של גאיה</a> · <a href="/waves-quiz/gaia-division/">מסע החילוק של גאיה</a> · <a href="/waves-quiz/gaia-test/">המבחן של גאיה</a> · <a href="/waves-quiz/gaia-plan/">התוכנית של גאיה</a></p>
 </body>
 </html>

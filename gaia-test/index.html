@@ -98,6 +98,11 @@ bdi.m{direction:ltr;unicode-bidi:isolate;white-space:nowrap;font-variant-numeric
 .rrow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}
 .st{padding:2px 12px;border-radius:99px;font-size:.85rem;white-space:nowrap}
 .st.first{background:var(--good-bg)} .st.fixed{background:var(--mid-bg)} .st.miss{background:var(--bad-bg)} .st.none{background:var(--surface2);color:var(--muted)}
+.ptopics{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.ptopic{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;background:var(--bg);border:2px solid var(--line);color:var(--ink);text-decoration:none;font-size:.95rem}
+.ptopic:hover{border-color:var(--accent)}
+.ptopic em{font-style:normal}
+.st.good{background:var(--good-bg)} .st.almost{background:var(--mid-bg)} .st.weak{background:var(--bad-bg)}
 .foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:.9rem}
 .foot a,.card a{color:var(--accent)}
 .pop{animation:pop .35s ease-out}
@@ -275,6 +280,105 @@ const TIPS=[
 ];
 const TOPICS=SECTIONS.flatMap((S,s)=>S.topics.map(T=>({...T,sec:s}))).map((T,i)=>({...T,tip:TIPS[i]}));
 
+/* ---------- new questions for each topic (topic practice) ---------- */
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pickOne=a=>a[Math.floor(Math.random()*a.length)];
+const lcm=(a,b)=>a/gcd(a,b)*b;
+const F=(n,d)=>`[${n}/${d}]`;
+const red=(n,d)=>{const g=gcd(n,d);return [n/g,d/g]};
+const properPair=(lo,hi)=>{let a,b;do{b=rnd(lo,hi);a=rnd(1,b-1)}while(gcd(a,b)>1);return [a,b]};
+const dstr=x=>String(r3(x));
+const mixedTxt=(n,d)=>{const [a,b]=red(n,d);return mixedStr(a,b)};
+function mcOf(right,others){const out=[right];for(const x of others){if(out.length>=4)break;if(x!=null&&x!==""&&!out.includes(x))out.push(x)}return out}
+const paraPic=(b,s,h)=>`<svg viewBox="0 0 340 200" width="340" role="img" aria-label="מקבילית: צלע ${b}, צלע ${s} וגובה ${h}"><polygon class="shape" points="40,160 240,160 300,50 100,50"/>
+ <line class="dash" x1="100" y1="50" x2="100" y2="160"/><path class="ln" style="stroke-width:1.8" d="M100,147 h13 v13"/>
+ <text class="lbl" x="140" y="184" text-anchor="middle">${b} ס״מ</text><text class="lbl" x="305" y="115" text-anchor="middle">${s} ס״מ</text><text class="lbl acc" x="140" y="112" text-anchor="middle">${h} ס״מ</text></svg>`;
+const DIAG_EXTRA=[
+ {k:"mc",t:"כמה אלכסונים יש למרובע?",ch:["2","4","1","3"],a:"2",ex:"מכל קודקוד יוצא אלכסון אחד, אל הקודקוד שמולו. 4 קודקודים, אבל כל אלכסון נספר פעמיים: 2 אלכסונים."},
+ {k:"mc",t:"כמה אלכסונים יש למשושה (6 צלעות)?",ch:["9","6","12","3"],a:"9",ex:"מכל קודקוד יוצאים 3 אלכסונים. 6 × 3 = 18, וכל אלכסון נספר פעמיים: 9."},
+ {k:"mc",t:"מה נכון תמיד לגבי האלכסונים של ריבוע?",ch:["שווים באורכם ומאונכים זה לזה","שווים באורכם אבל לא מאונכים","מאונכים אבל לא שווים באורכם","לא שווים ולא מאונכים"],a:"שווים באורכם ומאונכים זה לזה",ex:"ריבוע הוא גם מלבן (האלכסונים שווים) וגם מעוין (האלכסונים מאונכים), אז יש לו את שתי התכונות."},
+ {k:"mc",t:"אלכסון אחד מחלק מלבן ל...",ch:["2 משולשים שווים","2 ריבועים","4 משולשים","2 מלבנים"],a:"2 משולשים שווים",ex:"האלכסון מחבר שני קודקודים שמול זה את זה, וחותך את המלבן לשני משולשים זהים."}
+];
+const TOPIC_GEN=[
+ ()=>{const x=rnd(100000,699999);return add(x,rnd(10000,999999-x))},
+ ()=>{const x=Math.random()<.35?rnd(3,10)*100000:rnd(300000,999999);return sub(x,rnd(50000,x-1000))},
+ ()=>mul(rnd(120,2999),Math.random()<.4?rnd(3,9):rnd(12,68)),
+ ()=>{const d=rnd(3,9);return div(rnd(150,2999)*d,d)},
+ ()=>{const y=rnd(2,9)*pickOne([10,100]);return div0(rnd(2,9)*pickOne([1,10,100])*y,y)},
+ ()=>{const T=rnd(0,3);
+   if(T===0){const b=rnd(2,9),c=rnd(2,9),a=b*c+rnd(5,60);return order(`${a} − ${b} × ${c} = ?`,`${a}-${b}*${c}`,`קודם כפל: ${m(`${b} × ${c} = ${b*c}`)}. אחר כך חיסור: ${m(`${a} − ${b*c} = ${a-b*c}`)}.`)}
+   if(T===1){const c=rnd(2,9),s=c*rnd(2,12),a=rnd(1,s-1),b=s-a,d=rnd(2,5);return order(`(${a} + ${b}) ÷ ${c} × ${d} = ?`,`(${a}+${b})/${c}*${d}`,`קודם סוגריים: ${m(`${a} + ${b} = ${s}`)}. כפל וחילוק לפי הסדר: ${m(`${s} ÷ ${c} = ${s/c}`)}, ואז ${m(`${s/c} × ${d} = ${s/c*d}`)}.`)}
+   if(T===2){const e=rnd(2,9),d=e*rnd(2,9),b=rnd(2,9),c=rnd(2,9),a=rnd(10,99);return order(`${a} + ${b} × ${c} − ${d} ÷ ${e} = ?`,`${a}+${b}*${c}-${d}/${e}`,`קודם כפל וחילוק: ${m(`${b} × ${c} = ${b*c}`)} ו־${m(`${d} ÷ ${e} = ${d/e}`)}. אחר כך לפי הסדר: ${m(`${a} + ${b*c} − ${d/e} = ${a+b*c-d/e}`)}.`)}
+   const c=rnd(2,8),b=c+rnd(2,9),a=rnd(2,9),p=a*(b-c),e=rnd(2,9),d=e*rnd(1,Math.min(9,p-1));
+   return order(`${a} × (${b} − ${c}) − ${d} ÷ ${e} = ?`,`${a}*(${b}-${c})-${d}/${e}`,`קודם סוגריים: ${m(`${b} − ${c} = ${b-c}`)}. כפל וחילוק: ${m(`${a} × ${b-c} = ${p}`)} ו־${m(`${d} ÷ ${e} = ${d/e}`)}. בסוף: ${m(`${p} − ${d/e} = ${p-d/e}`)}.`)},
+ ()=>{const T=rnd(0,3);
+   if(T===0){const t=pickOne([1000,5000,10000,100000]),x=rnd(t/10,t-1);return {k:"num",t:"איזה מספר חסר?",e:`${N(x)} + ☐ = ${N(t)}`,a:t-x,ex:`מחפשים כמה חסר ל־${N(x)} כדי להגיע ל־${N(t)}: ${m(`☐ = ${N(t)} − ${N(x)} = ${N(t-x)}`)}.`}}
+   if(T===1){const y=rnd(500,9999),z=rnd(500,9999);return {k:"num",t:"איזה מספר חסר?",e:`☐ − ${N(y)} = ${N(z)}`,a:y+z,ex:`אם הורדנו ${N(y)} ונשארו ${N(z)}, מחזירים אותם: ${m(`☐ = ${N(z)} + ${N(y)} = ${N(y+z)}`)}.`}}
+   if(T===2){const k=pickOne([4,5,6,8,12,15,20,25]),a=rnd(6,90);return {k:"num",t:"איזה מספר חסר?",e:`${k} × ☐ = ${N(k*a)}`,a,ex:`ההפך של כפל הוא חילוק: ${m(`☐ = ${N(k*a)} ÷ ${k} = ${a}`)}.`}}
+   const k=rnd(2,9),q=rnd(20,250);return {k:"num",t:"איזה מספר חסר?",e:`☐ ÷ ${k} = ${q}`,a:k*q,ex:`ההפך של חילוק הוא כפל: ${m(`☐ = ${q} × ${k} = ${N(k*q)}`)}.`}},
+ ()=>{const T=rnd(0,3);
+   if(T===0){const A=rnd(2,6)*1000,B=rnd(1,3)*1000,x=A+rnd(-40,40),y=B+rnd(-40,40),s=A+B;
+     return {k:"mc",t:`בלי לחשב בדיוק: לאיזה מספר הכי קרוב ${m(`${N(x)} + ${N(y)}`)}?`,ch:mcOf(N(s),[N(s-1000),N(s+1000),N(s*10)]),a:N(s),ex:`מעגלים: ${N(x)} זה בערך ${N(A)}, ו־${N(y)} זה בערך ${N(B)}. ${m(`${N(A)} + ${N(B)} = ${N(s)}`)}.`}}
+   if(T===1){const A=rnd(2,9)*100,B=rnd(2,9)*10,x=A+pickOne([-3,-2,-1,1,2,3]),y=B+pickOne([-1,1]),p=A*B;
+     return {k:"mc",t:`בלי לחשב בדיוק: בערך כמה זה ${m(`${x} × ${y}`)}?`,ch:mcOf(N(p),[N(p/10),N(p*10),N(A*(B+10))]),a:N(p),ex:`מעגלים: ${x} זה בערך ${A}, ו־${y} זה בערך ${B}. ${m(`${A} × ${B} = ${N(p)}`)}.`}}
+   if(T===2){const d=rnd(3,9),q=rnd(2,9)*100,x=q*d+rnd(-15,15);
+     return {k:"mc",t:`בלי לחשב בדיוק: בערך כמה זה ${m(`${N(x)} ÷ ${d}`)}?`,ch:mcOf(N(q),[N(q/10),N(q*10),N(q+100)]),a:N(q),ex:`${N(x)} קרוב ל־${N(q*d)}, שמתחלק יפה ב־${d}: ${m(`${N(q*d)} ÷ ${d} = ${N(q)}`)}.`}}
+   const n=rnd(3,6),[p,r]=pickOne([[49,50],[99,100],[198,200],[48,50],[97,100]]),t=n*r;
+   return {k:"mc",t:`נועם קנה ${n} ספרים, כל אחד ב־${p} ₪. בערך כמה שילם?`,ch:mcOf(`${N(t)} ₪`,[`${N(t*10)} ₪`,`${N(t-r)} ₪`,`${N(t/10)} ₪`]),a:`${N(t)} ₪`,ex:`${p} זה כמעט ${r}, ו־${m(`${n} × ${r} = ${N(t)}`)}. הוא שילם קצת פחות מ־${N(t)} ₪.`}},
+ ()=>{const T=rnd(0,3);
+   if(T===0){const s=pickOne([25,50,75,125,150,200]),k=rnd(4,16);return {k:"num",t:`נועה חוסכת ${s} ₪ בכל חודש. אחרי כמה חודשים יהיו לה ${N(s*k)} ₪?`,a:k,unit:"חודשים",ex:`${m(`${N(s*k)} ÷ ${s} = ${k}`)}. בדיקה: ${m(`${s} × ${k} = ${N(s*k)}`)}.`}}
+   if(T===1){const r=rnd(12,40),p=rnd(15,45);return {k:"num",t:`באולם יש ${N(r*p)} מקומות, ב־${r} שורות שוות. כמה מקומות יש בכל שורה?`,a:p,unit:"מקומות",ex:`מחלקים את המקומות לשורות: ${m(`${N(r*p)} ÷ ${r} = ${p}`)}. בדיקה: ${m(`${p} × ${r} = ${N(r*p)}`)}.`}}
+   if(T===2){const pr=rnd(25,85),n=rnd(12,40);return {k:"num",t:`כרטיס להצגה עולה ${pr} ₪. ${n} תלמידים קנו כרטיסים. כמה שילמו בסך הכול?`,a:pr*n,unit:"₪",ex:`${m(`${pr} × ${n} = ${N(pr*n)}`)} ₪.`}}
+   const a=rnd(5000,20000),b=rnd(1000,5000),c=rnd(500,2000);return {k:"num",t:`בספרייה היו ${N(a)} ספרים. הגיעו עוד ${N(b)} ספרים, ו־${N(c)} ספרים ישנים נמסרו. כמה ספרים יש עכשיו?`,a:a+b-c,unit:"ספרים",ex:`קודם מוסיפים: ${m(`${N(a)} + ${N(b)} = ${N(a+b)}`)}. אחר כך מורידים: ${m(`${N(a+b)} − ${N(c)} = ${N(a+b-c)}`)}.`}},
+ ()=>{const D=[2,3,4,5,6,8,10,12];let w1,n1,d1,w2,n2,d2,plus,A,B,L;
+   do{d1=pickOne(D);d2=pickOne(D);n1=rnd(1,d1-1);n2=rnd(1,d2-1);w1=rnd(0,4);w2=rnd(0,3);plus=Math.random()<.5;L=lcm(d1,d2);A=w1*d1+n1;B=w2*d2+n2}
+   while(L>24||gcd(n1,d1)>1||gcd(n2,d2)>1||(!plus&&A*d2<=B*d1)||(!w1&&!w2));
+   const a1=A*L/d1,b1=B*L/d2,r=plus?a1+b1:a1-b1,[rn,rd]=red(r,L),op=plus?"+":"−",show=(w,n,d)=>w?`${w}[${n}/${d}]`:F(n,d);
+   return {k:"frac",t:"פתרי:",e:`${show(w1,n1,d1)} ${op} ${show(w2,n2,d2)} = ?`,a:[rn,rd],
+     ex:`כותבים כל מספר כשבר: ${show(w1,n1,d1)} = ${F(A,d1)}, ו־${show(w2,n2,d2)} = ${F(B,d2)}. מכנה משותף ${L}: ${F(a1,L)} ${op} ${F(b1,L)} = ${F(r,L)}${rd!==L?` = ${F(rn,rd)}`:""}${rn>=rd?`, כלומר ${mixedStr(rn,rd)}`:""}.`}},
+ ()=>{const from=pickOne([0,0,1]),span=pickOne([1,1,2]),k=rnd(3,8),parts=span*k;let mk;do{mk=rnd(1,parts-1)}while(mk%k===0);
+   const right=mixedTxt(from*k+mk,k);
+   const wrong=[span===2?mixedTxt(from*parts+mk,parts):null,mixedTxt(from*(k+1)+mk,k+1),mixedTxt(from*k+mk+1,k),mixedTxt(from*k+mk-1,k)];
+   return {k:"mc",t:"איזה מספר מסומן בנקודה A?",pic:numberLine(from,from+span,parts,mk),ch:mcOf(right,wrong.filter(x=>x&&x!==String(from))),a:right,
+     ex:`בכל שלם יש ${k} חלקים שווים, אז כל חלק הוא ${F(1,k)}. A נמצאת ${mk} חלקים אחרי ${from}: ${right}.`}},
+ ()=>{let n1,d1,n2,d2;do{[n1,d1]=properPair(2,12);[n2,d2]=properPair(2,12)}while(d1===d2||n1*d2===n2*d1||lcm(d1,d2)>60);
+   const big=n1*d2>n2*d1?F(n1,d1):F(n2,d2),c=lcm(d1,d2);
+   return {k:"mc",t:"איזה שבר גדול יותר?",ch:[F(n1,d1),F(n2,d2)],a:big,ex:`מכנה משותף ${c}: ${F(n1,d1)} = ${F(n1*c/d1,c)} ו־${F(n2,d2)} = ${F(n2*c/d2,c)}. לכן ${big} גדול יותר.`}},
+ ()=>{const T=rnd(0,3),[a,b]=properPair(2,8);
+   if(T===0){const n=b*rnd(3,8);return {k:"num",t:`בכיתה ${n} תלמידים, ו־${F(a,b)} מהם יצאו לטיול. כמה תלמידים יצאו?`,a:n/b*a,unit:"תלמידים",ex:`${F(1,b)} מ־${n} זה ${m(`${n} ÷ ${b} = ${n/b}`)}. ${F(a,b)} זה ${m(`${n/b} × ${a} = ${n/b*a}`)}.`}}
+   if(T===1){const n=b*rnd(4,15),sp=n/b*a;return {k:"num",t:`לדני היו ${n} ₪. הוא הוציא ${F(a,b)} מהכסף. כמה כסף נשאר לו?`,a:n-sp,unit:"₪",ex:`${F(1,b)} מ־${n} זה ${n/b}. הוא הוציא ${F(a,b)}, כלומר ${sp} ₪. נשאר: ${m(`${n} − ${sp} = ${n-sp}`)} ₪.`}}
+   if(T===2){const one=rnd(2,9),p=one*a;return {k:"num",t:`${F(a,b)} מהעוגה הם ${p} פרוסות. מכמה פרוסות בנויה העוגה כולה?`,a:one*b,unit:"פרוסות",ex:`אם ${F(a,b)} הם ${p} פרוסות, אז ${F(1,b)} הוא ${m(`${p} ÷ ${a} = ${one}`)} פרוסות. העוגה כולה היא ${F(b,b)}: ${m(`${one} × ${b} = ${one*b}`)}.`}}
+   const n=pickOne([30,45,60,90,120]),x=n/5,y=n/3;return {k:"num",t:`בסל יש ${n} פירות. ${F(1,5)} מהם תפוחים ו־${F(1,3)} מהם בננות. כמה תפוחים ובננות יש ביחד?`,a:x+y,unit:"פירות",ex:`תפוחים: ${m(`${n} ÷ 5 = ${x}`)}. בננות: ${m(`${n} ÷ 3 = ${y}`)}. ביחד: ${m(`${x} + ${y} = ${x+y}`)}.`}},
+ ()=>{const step=pickOne([0.1,0.2,0.25,0.3,0.5,0.05]),down=Math.random()<.35;let s0=r3(rnd(1,40)*pickOne([0.05,0.1]));if(down)s0=r3(s0+step*6);
+   const terms=[0,1,2,3].map(i=>r3(down?s0-step*i:s0+step*i)),nx=r3(down?s0-step*4:s0+step*4);
+   return {k:"num",t:"איזה מספר בא אחר כך בסדרה?",e:`${terms.map(dstr).join(", ")}, ☐`,a:nx,ex:`בכל צעד ${down?"מורידים":"מוסיפים"} ${m(dstr(step))}: ${m(`${dstr(terms[3])} ${down?"−":"+"} ${dstr(step)} = ${dstr(nx)}`)}.`}},
+ ()=>{let plus,a,b;do{plus=Math.random()<.5;const x=r3(rnd(105,2000)/pickOne([10,100])),y=r3(rnd(105,999)/pickOne([10,100]));[a,b]=plus||x>y?[x,y]:[y,x]}while(!plus&&a===b);
+   const r=r3(plus?a+b:a-b),dp=v=>(String(v).split(".")[1]||"").length,k=Math.max(dp(a),dp(b));
+   return {k:"num",t:"פתרי:",e:`${dstr(a)} ${plus?"+":"−"} ${dstr(b)} = ?`,a:r,ex:`מיישרים את הנקודות העשרוניות זו מתחת לזו${k?`, ומשלימים באפסים כך שיהיו ${k===1?"ספרה אחת":k+" ספרות"} אחרי הנקודה`:""}: ${m(`${a.toFixed(k)} ${plus?"+":"−"} ${b.toFixed(k)} = ${r.toFixed(k)}`)}.`}},
+ ()=>{const [a,b]=pickOne([[1,2],[1,4],[3,4],[1,5],[2,5],[3,5],[4,5],[1,10],[3,10],[7,10],[9,10],[1,20],[3,20],[7,20],[9,20],[1,25],[2,25],[1,50],[3,50]]),k=100/b,v=r3(a/b),T=rnd(0,2);
+   if(T===0)return {k:"num",t:`כתבי את ${F(a,b)} כמספר עשרוני:`,a:v,ex:`מרחיבים למכנה 100 (כופלים ב־${k}): ${F(a,b)} = ${F(a*k,100)} = ${m(dstr(v))}.`};
+   if(T===1)return {k:"frac",t:`כתבי את ${m(dstr(v))} כשבר פשוט (מצומצם):`,a:[a,b],ex:`${m(dstr(v))} זה ${F(a*k,100)}. מצמצמים ב־${k}: ${F(a,b)}.`};
+   const w=rnd(1,4);return {k:"frac",t:`כתבי את ${m(dstr(w+v))} כמספר מעורב:`,a:[w*b+a,b],ex:`${m(dstr(w+v))} זה ${w} שלמים ועוד ${F(a*k,100)}. מצמצמים ב־${k}: ${w}[${a}/${b}].`}},
+ ()=>{const pool=[[1,4],[1,2],[3,4],[2,5],[3,5],[1,5],[4,5],[7,10],[3,10],[9,10],[3,20],[7,20]];let it;
+   do{const fr=shuffle(pool).slice(0,rnd(1,2)).map(([a,b])=>({s:F(a,b),v:a/b}));const want=3-fr.length+(Math.random()<.3?1:0),decs=[];
+     while(decs.length<want){const v=r3(rnd(5,95)/100);decs.push({s:dstr(v),v})}it=fr.concat(decs)}while(new Set(it.map(x=>x.v)).size!==it.length);
+   const sorted=it.slice().sort((x,y)=>x.v-y.v),right=sorted.map(x=>x.s).join(" < "),perms=[];
+   for(let i=0;i<40&&perms.length<6;i++){const p=shuffle(it).map(x=>x.s).join(" < ");if(p!==right&&!perms.includes(p))perms.push(p)}
+   return {k:"mc",ltr:true,wide:true,t:`סדרי מהקטן לגדול: ${shuffle(it).map(x=>x.s.startsWith("[")?x.s:m(x.s)).join(", ")}`,ch:mcOf(right,perms),a:right,
+     ex:`הופכים את השברים לעשרוניים: ${it.filter(x=>x.s.startsWith("[")).map(x=>`${x.s} = ${m(dstr(x.v))}`).join(", ")}. אז ${m(sorted.map(x=>dstr(x.v)).join(" < "))}.`}},
+ ()=>{const T=rnd(0,3);
+   if(T<2)return TOPICS[17].pool[T];
+   if(T===2){const b=rnd(4,15),h=rnd(3,12);return {k:"num",t:`שטח מקבילית הוא ${b*h} סמ״ר, ואורך אחת הצלעות שלה ${b} ס״מ. מה אורך הגובה לצלע הזאת?`,a:h,unit:"ס״מ",ex:`שטח מקבילית = צלע × גובה. אז הגובה הוא ${m(`${b*h} ÷ ${b} = ${h}`)} ס״מ.`}}
+   const b=rnd(3,14)*2,h=rnd(3,12);return {k:"num",t:`שטח משולש הוא ${b*h/2} סמ״ר, ואורך הבסיס שלו ${b} ס״מ. מה אורך הגובה לבסיס?`,a:h,unit:"ס״מ",ex:`שטח משולש = (בסיס × גובה) ÷ 2. אז בסיס × גובה = ${m(`${b*h/2} × 2 = ${b*h}`)}, והגובה הוא ${m(`${b*h} ÷ ${b} = ${h}`)} ס״מ.`}},
+ ()=>pickOne(TOPICS[18].pool.concat(DIAG_EXTRA)),
+ ()=>{const T=rnd(0,3);
+   if(T===0){const w=rnd(5,20),h=rnd(3,w-1);return {k:"num",t:"מה שטח המלבן?",pic:rectPic(`${w} ס״מ`,`${h} ס״מ`),a:w*h,unit:"סמ״ר",ex:`שטח מלבן = אורך × רוחב = ${m(`${w} × ${h} = ${w*h}`)} סמ״ר.`}}
+   if(T===1){const w=rnd(5,20),h=rnd(3,w-1);return {k:"num",t:`היקף המלבן הוא ${2*(w+h)} ס״מ. מה השטח שלו?`,pic:rectPic(`${w} ס״מ`,"?"),a:w*h,unit:"סמ״ר",ex:`היקף = 2 × (אורך + רוחב), אז אורך + רוחב = ${m(`${2*(w+h)} ÷ 2 = ${w+h}`)}. הצלע השנייה: ${m(`${w+h} − ${w} = ${h}`)} ס״מ. השטח: ${m(`${w} × ${h} = ${w*h}`)} סמ״ר.`}}
+   const b=rnd(8,16),s=rnd(5,b-1),h=rnd(3,s-1);
+   if(T===2)return {k:"num",t:"מה שטח המקבילית?",pic:paraPic(b,s,h),a:b*h,unit:"סמ״ר",ex:`שטח מקבילית = צלע × הגובה אליה = ${m(`${b} × ${h} = ${b*h}`)} סמ״ר. את הצלע של ${s} ס״מ לא צריך בשביל השטח.`};
+   return {k:"num",t:"מה היקף המקבילית?",pic:paraPic(b,s,h),a:2*(b+s),unit:"ס״מ",ex:`היקף = סכום כל הצלעות: ${m(`${b} + ${s} + ${b} + ${s} = ${2*(b+s)}`)} ס״מ. את הגובה לא צריך בשביל ההיקף.`}}
+];
+
 /* ---------- messages for Gaia ---------- */
 const PRAISE=["כל הכבוד גאיה! אבי ממש שמח.","תשובה של אלופה! אבי גאה בך.","בול! גאיה מוכנה למבחן. אבי מוחא כפיים.","יש! עוד נושא שאת שולטת בו. אבי שמח, גאיה.",
  "גאיה דור עושה את זה שוב! אבי קופץ משמחה.","מבזק: גאיה מוכנה למבחן! אבי בכלל לא מופתע.","וואו, גאיה! אבי שולח לך חיבוק ענק.","פששש, איזה ראש! אבי מרוצה.",
@@ -298,41 +402,33 @@ const firstCount=()=>st.res.filter(r=>r==="first").length;
 /* ---------- start ---------- */
 function start(){
   const inProgress=st&&!st.done&&(st.pos>0||st.alt>0);
+  const ts=t=>window.GaiaDaily?GaiaDaily.topicStatus(t):{cls:"none",label:""};
   view.innerHTML=`${window.GaiaDaily?GaiaDaily.missionHTML():""}
   <div class="card">
     <h2>היי גאיה! מוכנה?</h2>
-    <p>במבחן הזה יש <b>${TOPICS.length} שאלות, אחת מכל נושא</b> שהמורות כתבו בדף הנושאים למבחן תחילת השנה. אם תעני לא נכון, תקבלי הסבר קצר ואז <b>שאלה מחליפה</b> באותו נושא, עד 3 פעמים. בסוף תראי ציון ואילו נושאים כדאי לתרגל עוד.</p>
+    <p>במבחן הזה יש <b>${TOPICS.length} שאלות, אחת מכל נושא</b> שהמורות כתבו בדף הנושאים למבחן תחילת השנה. אם תעני לא נכון, תקבלי הסבר קצר ואז <b>שאלה מחליפה</b> באותו נושא, עד 3 פעמים. בסוף תראי ציון ואילו נושאים כדאי לתרגל עוד, והם ייכנסו לתוכנית האישית שלך.</p>
     <p class="sub">כדאי להחזיק דף ועיפרון בצד.</p>
-    ${SECTIONS.map((S,s)=>`<div style="display:flex;flex-direction:column;gap:8px"><span class="sec">${S.name}</span><ul class="topics">${TOPICS.filter(T=>T.sec===s).map(T=>`<li>${T.name}</li>`).join("")}</ul></div>`).join("")}
     <div class="actions">
       ${inProgress?`<button class="btn" id="cont">להמשיך מאיפה שעצרתי (שאלה ${st.pos+1})</button><button class="btn ghost" id="fresh">להתחיל מבחן חדש</button>`
                   :`<button class="btn" id="fresh">להתחיל את המבחן</button>`}
       ${st&&st.done?`<button class="btn ghost" id="last">לתוצאות של המבחן הקודם</button>`:""}
     </div>
   </div>
-  <div class="foot"><span>עוד תרגול: <a href="../gaia/">מסע השברים</a> · <a href="../gaia-division/">מסע החילוק הארוך</a></span><span>ההתקדמות נשמרת בדפדפן הזה.</span></div>`;
+  <div class="card">
+    <h2>תרגול לפי נושא</h2>
+    <p class="sub">5 שאלות חדשות בנושא אחד, עם רמז והסבר בכל שאלה. ליד כל נושא כתוב מה המצב שלך בו.</p>
+    ${SECTIONS.map((S,s)=>`<div style="display:flex;flex-direction:column;gap:8px"><span class="sec">${S.name}</span><div class="ptopics">${TOPICS.map((T,t)=>T.sec===s?`<a class="ptopic" href="#T${t+1}"><span>${T.name}</span><em class="st ${ts(t).cls}">${ts(t).label}</em></a>`:"").join("")}</div></div>`).join("")}
+  </div>
+  <div class="foot"><span><a href="../gaia-plan/">התוכנית האישית שלי</a> · <a href="../gaia/">מסע השברים</a> · <a href="../gaia-division/">מסע החילוק הארוך</a></span><span>ההתקדמות נשמרת בדפדפן הזה.</span></div>`;
   $("#cont")&&($("#cont").onclick=showQ);
   $("#fresh").onclick=()=>{newTest();showQ()};
   $("#last")&&($("#last").onclick=report);
 }
 
-/* ---------- one question ---------- */
-let sel=null,answered=false;
-// encouragement at the start, between the test's parts, and halfway
-function cheer(){
-  if(st.alt)return "";
-  const T=TOPICS[st.pos],prev=TOPICS[st.pos-1];
-  let t="";
-  if(st.pos===0)t="יאללה גאיה, מתחילים! קחי את הזמן, אין לחץ. אבי איתך.";
-  else if(prev.sec!==T.sec)t=`סיימת את החלק של ${SECTIONS[prev.sec].name}! עכשיו: ${SECTIONS[T.sec].name}. את בדרך הנכונה, גאיה.`;
-  else if(st.pos===Math.floor(TOPICS.length/2))t="עברת כבר חצי מבחן! אבי גאה בך. ממשיכים.";
-  else if(st.pos===TOPICS.length-1)t="שאלה אחרונה, גאיה! עוד רגע סיימת.";
-  return t?`<div class="fb good pop"><p>${t}</p></div>`:"";
-}
-const curQ=()=>TOPICS[st.pos].pool[st.order[st.pos][st.alt]];
-function showQ(){
-  sel=null;answered=false;
-  const T=TOPICS[st.pos],q=curQ();
+/* ---------- asking one question (the test and topic practice both use it) ---------- */
+let sel=null,answered=false,Q=null,onGraded=null,goNext=null;
+function ask(q,top,chip,tip){
+  Q=q;sel=null;answered=false;goNext=null;
   let body="";
   if(q.k==="mc"){
     const wrapC=c=>q.ltr?`<bdi class="m" dir="ltr">${fmt(c)}</bdi>`:fmt(c);
@@ -345,21 +441,18 @@ function showQ(){
   }else{
     body=`<div class="inrow"><input class="box" id="inX" inputmode="decimal" autocomplete="off" aria-label="התשובה">${q.unit?`<span class="unit">${q.unit}</span>`:""}</div>`;
   }
-  view.innerHTML=`<section class="wrap" style="gap:14px">
-    <div class="qhead"><button class="linkbtn" id="home">→ למסך הפתיחה</button><span class="where">שאלה ${st.pos+1} מתוך ${TOPICS.length}</span></div>
-    <div class="bar" aria-hidden="true"><i style="width:${st.pos/TOPICS.length*100}%"></i></div>
-    ${cheer()}
+  view.innerHTML=`<section class="wrap" style="gap:14px">${top}
     <div class="card">
-      <div class="qhead"><span class="chip">${SECTIONS[T.sec].name} · ${T.name}</span>${st.alt?`<span class="chip alt">שאלה מחליפה ${st.alt} מתוך 3</span>`:""}</div>
+      <div class="qhead">${chip}</div>
       <p class="qtext">${fmt(q.t)}</p>
       ${q.e?`<div class="expr">${fmt(q.e)}</div>`:""}
       ${q.pic?`<div class="pic">${q.pic}</div>`:""}
       ${body}
       <div id="fb"></div>
-      <div class="actions"><button class="btn" id="go" ${q.k==="mc"?"disabled":""}>בדיקה</button><button class="btn ghost" id="hint">צריכה רמז?</button><button class="linkbtn" id="skip" hidden>לעבור לנושא הבא</button></div>
+      <div class="actions"><button class="btn" id="go" ${q.k==="mc"?"disabled":""}>בדיקה</button><button class="btn ghost" id="hint">צריכה רמז?</button><button class="linkbtn" id="skip" hidden></button></div>
     </div></section>`;
-  $("#home").onclick=start;
-  $("#hint").onclick=()=>{$("#fb").innerHTML=`<div class="fb info pop"><strong>רמז</strong><p>${fmt(T.tip)}</p></div>`;$("#hint").hidden=true};
+  $("#home")&&($("#home").onclick=start);
+  $("#hint").onclick=()=>{$("#fb").innerHTML=`<div class="fb info pop"><strong>רמז</strong><p>${fmt(tip)}</p></div>`;$("#hint").hidden=true};
   if(q.k==="mc"){
     view.querySelectorAll(".choice").forEach(b=>b.onclick=()=>{
       if(answered)return;
@@ -371,8 +464,7 @@ function showQ(){
     ins.forEach(x=>x.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("#go").click()}}));
     ins[q.k==="frac"?1:0].focus({preventScroll:true});
   }
-  $("#go").onclick=()=>answered?next():check();
-  $("#skip").onclick=()=>{st.pos++;st.alt=0;save();st.pos>=TOPICS.length?finish():showQ();window.scrollTo(0,0)};
+  $("#go").onclick=()=>answered?(goNext&&goNext()):grade();
 }
 function parseNum(v){
   v=v.trim().replace(/\s/g,"");
@@ -380,8 +472,8 @@ function parseNum(v){
   if(/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(v))v=v.replace(/,/g,"");else v=v.replace(",",".");
   return /^\d*\.?\d+$/.test(v)?+v:NaN;
 }
-function check(){
-  const q=curQ(),fb=$("#fb");
+function grade(){
+  const q=Q,fb=$("#fb");
   let ok,note="";
   if(q.k==="mc"){if(sel==null)return;ok=sel===q.a}
   else if(q.k==="frac"){
@@ -405,42 +497,136 @@ function check(){
   view.querySelectorAll(".box").forEach(x=>x.disabled=true);
   if(q.k==="mc")view.querySelectorAll(".choice").forEach(b=>{b.disabled=true;if(b.dataset.v===q.a)b.classList.add("right");else if(b.dataset.v===sel)b.classList.add("wrong")});
   const ansText=q.k==="mc"?(q.ltr?m(fmt(q.a)):fmt(q.a)):q.k==="frac"?fmt(mixedStr(q.a[0],q.a[1])):`${m(N(q.a))}${q.unit?" "+q.unit:""}`;
-  const g=$("#go");
-  if(ok){
-    st.res[st.pos]=st.alt?"fixed":"first";
-    fb.innerHTML=`<div class="fb good pop"><strong>${pickFrom(st.alt?FIXED:PRAISE)}</strong><p>${fmt(q.ex)}${note}</p></div>`;
-    g.textContent=st.pos<TOPICS.length-1?"לשאלה הבאה ←":"לתוצאות המבחן";
-    st.pos++;st.alt=0;
-  }else{
-    st.res[st.pos]="miss";
-    fb.innerHTML=`<div class="fb bad pop"><strong>${pickFrom(MISSED)}</strong><p>התשובה הנכונה: ${ansText}</p><p>${fmt(q.ex)}</p></div>`;
-    if(st.alt<3){st.alt++;g.textContent="לשאלה מחליפה ←";$("#skip").hidden=false}
-    else{g.textContent=st.pos<TOPICS.length-1?"לנושא הבא ←":"לתוצאות המבחן";st.pos++;st.alt=0}
-  }
-  save();
-  g.focus({preventScroll:true});
+  onGraded(ok,{note,ansText,fb,g:$("#go"),skip:$("#skip")});
+  $("#go").focus({preventScroll:true});
 }
-function next(){if(st.pos>=TOPICS.length){finish();return}showQ();window.scrollTo(0,0)}
-function finish(){st.done=true;save();report()}
+
+/* ---------- the test ---------- */
+// encouragement at the start, between the test's parts, and halfway
+function cheer(){
+  if(st.alt)return "";
+  const T=TOPICS[st.pos],prev=TOPICS[st.pos-1];
+  let t="";
+  if(st.pos===0)t="יאללה גאיה, מתחילים! קחי את הזמן, אין לחץ. אבי איתך.";
+  else if(prev.sec!==T.sec)t=`סיימת את החלק של ${SECTIONS[prev.sec].name}! עכשיו: ${SECTIONS[T.sec].name}. את בדרך הנכונה, גאיה.`;
+  else if(st.pos===Math.floor(TOPICS.length/2))t="עברת כבר חצי מבחן! אבי גאה בך. ממשיכים.";
+  else if(st.pos===TOPICS.length-1)t="שאלה אחרונה, גאיה! עוד רגע סיימת.";
+  return t?`<div class="fb good pop"><p>${t}</p></div>`:"";
+}
+const curQ=()=>TOPICS[st.pos].pool[st.order[st.pos][st.alt]];
+const recordTopic=(t,status,src)=>window.GaiaDaily&&GaiaDaily.recordTopic(t,status,src);
+function showQ(){
+  const T=TOPICS[st.pos];
+  onGraded=(ok,r)=>{
+    const t=st.pos,q=Q;
+    if(ok){
+      st.res[t]=st.alt?"fixed":"first";
+      r.fb.innerHTML=`<div class="fb good pop"><strong>${pickFrom(st.alt?FIXED:PRAISE)}</strong><p>${fmt(q.ex)}${r.note}</p></div>`;
+      r.g.textContent=t<TOPICS.length-1?"לשאלה הבאה ←":"לתוצאות המבחן";
+      st.pos++;st.alt=0;
+    }else{
+      st.res[t]="miss";
+      r.fb.innerHTML=`<div class="fb bad pop"><strong>${pickFrom(MISSED)}</strong><p>התשובה הנכונה: ${r.ansText}</p><p>${fmt(q.ex)}</p></div>`;
+      if(st.alt<3){st.alt++;r.g.textContent="לשאלה מחליפה ←";r.skip.textContent="לעבור לנושא הבא";r.skip.hidden=false}
+      else{r.g.textContent=t<TOPICS.length-1?"לנושא הבא ←":"לתוצאות המבחן";st.pos++;st.alt=0}
+    }
+    save();recordTopic(t,st.res[t],"test");
+    goNext=()=>{st.pos>=TOPICS.length?finish():showQ();window.scrollTo(0,0)};
+  };
+  ask(curQ(),
+    `<div class="qhead"><button class="linkbtn" id="home">→ למסך הפתיחה</button><span class="where">שאלה ${st.pos+1} מתוך ${TOPICS.length}</span></div>
+     <div class="bar" aria-hidden="true"><i style="width:${st.pos/TOPICS.length*100}%"></i></div>${cheer()}`,
+    `<span class="chip">${SECTIONS[T.sec].name} · ${T.name}</span>${st.alt?`<span class="chip alt">שאלה מחליפה ${st.alt} מתוך 3</span>`:""}`,
+    T.tip);
+  $("#skip").onclick=()=>{st.pos++;st.alt=0;save();st.pos>=TOPICS.length?finish():showQ();window.scrollTo(0,0)};
+}
+function finish(){
+  if(!st.done){
+    st.done=true;save();
+    const f=firstCount();
+    if(window.GaiaDaily){GaiaDaily.recordTest(Math.round(f/TOPICS.length*100),f,st.res.filter(r=>r==="fixed").length);GaiaDaily.levelDone("testrun",-1,f)}
+  }
+  report();
+}
+
+/* ---------- topic practice: 5 new questions in one topic ---------- */
+const PRACTICE_N=5;
+let pr=null;
+function practice(t){pr={t,i:0,first:0,alt:0,missed:0,tipShown:false};prAsk();window.scrollTo(0,0)}
+function prAsk(){
+  const T=TOPICS[pr.t],q=TOPIC_GEN[pr.t]();
+  let intro="";
+  if(pr.i===0&&!pr.alt)intro=`<div class="fb good pop"><p>תרגול בנושא <b>${T.name}</b>: ${PRACTICE_N} שאלות חדשות, עם רמז והסבר בכל אחת. בהצלחה גאיה!</p></div>`;
+  else if(pr.missed>=2&&!pr.tipShown){pr.tipShown=true;intro=`<div class="fb info pop"><strong>בואי נזכיר את הכלל, גאיה</strong><p>${fmt(T.tip)}</p></div>`}
+  onGraded=(ok,r)=>{
+    if(ok){
+      if(!pr.alt)pr.first++;
+      r.fb.innerHTML=`<div class="fb good pop"><strong>${pickFrom(pr.alt?FIXED:PRAISE)}</strong><p>${fmt(Q.ex)}${r.note}</p></div>`;
+      r.g.textContent=pr.i<PRACTICE_N-1?"לשאלה הבאה ←":"לסיכום התרגול";
+      goNext=prNext;
+    }else{
+      if(!pr.alt)pr.missed++;
+      r.fb.innerHTML=`<div class="fb bad pop"><strong>${pickFrom(MISSED)}</strong><p>התשובה הנכונה: ${r.ansText}</p><p>${fmt(Q.ex)}</p></div>`;
+      if(pr.alt<2){r.g.textContent="לשאלה דומה ←";r.skip.textContent="לשאלה הבאה";r.skip.hidden=false;goNext=()=>{pr.alt++;prAsk();window.scrollTo(0,0)}}
+      else{r.g.textContent=pr.i<PRACTICE_N-1?"לשאלה הבאה ←":"לסיכום התרגול";goNext=prNext}
+    }
+  };
+  ask(q,
+    `<div class="qhead"><button class="linkbtn" id="home">→ למסך הפתיחה</button><span class="where">תרגול: שאלה ${pr.i+1} מתוך ${PRACTICE_N}${pr.alt?" · שאלה דומה":""}</span></div>
+     <div class="bar" aria-hidden="true"><i style="width:${pr.i/PRACTICE_N*100}%"></i></div>${intro}`,
+    `<span class="chip">תרגול · ${T.name}</span>${pr.alt?`<span class="chip alt">שאלה דומה</span>`:""}`,
+    T.tip);
+  $("#skip").onclick=prNext;
+}
+function prNext(){pr.alt=0;pr.i++;if(pr.i>=PRACTICE_N){prDone();return}prAsk();window.scrollTo(0,0)}
+function prDone(){
+  const T=TOPICS[pr.t],f=pr.first,status=f>=4?"first":f>=3?"fixed":"miss";
+  recordTopic(pr.t,status,"practice");
+  window.GaiaDaily&&GaiaDaily.levelDone("test",pr.t,f);
+  const msg=status==="first"?`מעולה, גאיה! הנושא "${T.name}" מסומן אצלך עכשיו "שולטת". אבי גאה בך.`
+    :status==="fixed"?`כמעט! עוד תרגול אחד ב"${T.name}" ותשלטי בזה. אבי מאמין בך.`
+    :`הנושא "${T.name}" עוד קשה, וזה בסדר גמור. הוא יחזור בתוכנית שלך עד שיהיה קל. אבי בטוח שתצליחי.`;
+  view.innerHTML=`<div class="card pop">
+    <div class="score"><span class="big">${f}/${PRACTICE_N}</span><div><h2>סיימת את התרגול!</h2><p>${f} מתוך ${PRACTICE_N} נכונות בניסיון הראשון.</p></div></div>
+    <p>${msg}</p>
+    <div class="actions"><button class="btn" id="more">עוד ${PRACTICE_N} שאלות בנושא</button><a class="btn ghost" href="../gaia-plan/" style="text-decoration:none">לתוכנית שלי</a><button class="btn ghost" id="home">למסך הפתיחה</button></div>
+  </div>`;
+  $("#more").onclick=()=>practice(pr.t);
+  $("#home").onclick=start;
+  window.scrollTo(0,0);
+}
 
 /* ---------- report ---------- */
 const LABEL={first:"נכון בניסיון הראשון",fixed:"תוקן בשאלה מחליפה",miss:"כדאי לתרגל",none:"לא נענה"};
 function report(){
   const f=firstCount(),score=Math.round(f/TOPICS.length*100),fixed=st.res.filter(r=>r==="fixed").length;
   const msg=score>=90?"מצוין, גאיה! את מוכנה למבחן. אבי גאה בך בטירוף.":score>=75?"יפה מאוד, גאיה! עוד קצת תרגול בנושאים שמסומנים, ואת שם. אבי גאה בך.":score>=55?"התחלה טובה, גאיה. תרגלי את הנושאים שמסומנים, ונסי שוב. אבי מאמין בך.":"זה בדיוק בשביל זה מתרגלים, גאיה. תרגלי את הנושאים שמסומנים ונסי שוב. אבי בטוח שתצליחי.";
-  const practice=TOPICS.map((T,t)=>({T,r:st.res[t]})).filter(x=>x.r!=="first");
+  const practiceN=st.res.filter(r=>r!=="first").length;
   view.innerHTML=`<div class="card pop">
     <div class="score"><span class="big">${score}</span><div><h2>כל הכבוד שסיימת, גאיה!</h2><p>${f} מתוך ${TOPICS.length} נכונות בניסיון הראשון${fixed?`, ועוד ${fixed} תוקנו בשאלה מחליפה`:""}.</p></div></div>
     <p>${msg}</p>
-    <div class="report">${SECTIONS.map((S,s)=>`<div><span class="sec">${S.name}</span>${TOPICS.map((T,t)=>T.sec===s?`<div class="rrow"><span>${T.name}</span><span class="st ${st.res[t]||"none"}">${LABEL[st.res[t]||"none"]}</span></div>`:"").join("")}</div>`).join("")}</div>
-    ${practice.length?`<p class="sub">כשתעשי את המבחן שוב, תקבלי שאלות אחרות מאותם נושאים.</p>`:""}
-    <div class="actions"><button class="btn" id="again">לעשות את המבחן שוב</button><button class="btn ghost" id="home">למסך הפתיחה</button></div>
+    ${practiceN?`<p class="fb info">${practiceN===1?"הנושא שצריך חיזוק נכנס":`${practiceN} הנושאים שצריך לחזק נכנסו`} לתוכנית האישית שלך. בכל יום נתרגל קצת, עד שיהיה קל.</p>`:""}
+    <div class="report">${SECTIONS.map((S,s)=>`<div><span class="sec">${S.name}</span>${TOPICS.map((T,t)=>T.sec===s?`<div class="rrow"><a href="#T${t+1}" style="color:inherit">${T.name}</a><span class="st ${st.res[t]||"none"}">${LABEL[st.res[t]||"none"]}</span></div>`:"").join("")}</div>`).join("")}</div>
+    <div class="actions"><a class="btn" href="../gaia-plan/" style="text-decoration:none">לתוכנית האישית שלי</a><button class="btn ghost" id="again">לעשות את המבחן שוב</button><button class="btn ghost" id="home">למסך הפתיחה</button></div>
   </div>`;
   $("#again").onclick=()=>{newTest();showQ();window.scrollTo(0,0)};
   $("#home").onclick=start;
   window.scrollTo(0,0);
 }
-st&&st.done?report():start();
+
+/* ---------- links from the plan: #T5 = practice topic 5, #test = the test ---------- */
+function route(){
+  const h=location.hash;
+  if(!h)return false;
+  history.replaceState(null,"",location.pathname);
+  const mm=h.match(/^#T(\d+)$/);
+  if(mm&&TOPIC_GEN[+mm[1]-1]){practice(+mm[1]-1);return true}
+  if(h==="#test"){if(!st||st.done)newTest();showQ();window.scrollTo(0,0);return true}
+  return false;
+}
+window.addEventListener("hashchange",route);
+route()||start();
 </script>
+
 </body>
 </html>
