@@ -21,6 +21,14 @@
   var TOPICS = ["חיבור", "חיסור", "כפל", "חילוק ארוך", "חילוק בעשרות ובמאות שלמות", "סדר פעולות חשבון", "משוואות: השלמת מספרים", "אומדן", "שאלות מילוליות",
     "חיבור וחיסור שברים ומספרים מעורבים", "שברים על ישר המספרים", "השוואת שברים", "השבר כחלק מכמות", "השלמת סדרות של מספרים עשרוניים",
     "חיבור וחיסור מספרים עשרוניים", "משבר פשוט למספר עשרוני ולהיפך", "סידור עשרוניים ושברים מהקטן לגדול", "גובה במקבילית ובמשולש", "אלכסונים", "היקף ושטח של מלבן ומקבילית"];
+  // the combined practice (gaia-practice/): one path that alternates long division and fractions,
+  // because each fractions step leans on the division before it (simplifying, mixed numbers, part of a number)
+  var PKEY = "gaia-practice-v1", ROUND = 10;
+  var PATH = [];
+  for (var lv = 0; lv < 10; lv++) PATH.push(["division", lv], ["fractions", lv]);
+  function skillName(i) { return SITES[PATH[i][0]].name + ": " + SITES[PATH[i][0]].levels[PATH[i][1]]; }
+  function practice() { return get(PKEY); }
+  function currentSkill() { var p = practice(); if (!p) return 0; for (var i = 0; i < PATH.length; i++) if (!p.sk[i].mastered) return i; return -1; }
   var TOPIC_GROUPS = [["מספרים טבעיים עד מיליון", 0, 9], ["שברים ומספרים עשרוניים", 9, 17], ["גאומטריה ומדידות", 17, 20]];
 
   function get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
@@ -45,51 +53,12 @@
   function topicStatus(rec) { return !rec ? "none" : rec.status === "first" ? "good" : rec.status === "fixed" ? "almost" : "weak"; }
   var STATUS = { good: "שולטת", almost: "כמעט", weak: "לחיזוק", doing: "בתהליך", none: "עוד לא" };
 
-  // The next items for her, best first. `skip` = items already planned (today's mission).
-  function plan(goal, skip) {
-    goal = goal || GOAL; skip = skip || [];
-    var info = { fractions: levelInfo("fractions"), division: levelInfo("division") }, sk = skills();
-    var items = [];
-    function taken(it) { return items.concat(skip).some(function (x) { return x.site === it.site && x.level === it.level; }); }
-    function add(it) { if (items.length < goal && it && !taken(it)) items.push(it); }
-    // prefer a source that isn't in the plan yet, so a day mixes subjects
-    function varied(list) {
-      var used = items.map(function (x) { return x.site; });
-      return list.filter(function (x) { return !taken(x) && used.indexOf(x.site) < 0; })[0] || list.filter(function (x) { return !taken(x); })[0];
-    }
+  // Today's items: the weekly practice test when it is due, then chapters (10 questions each) of the combined practice
+  function plan() {
+    var sk = skills(), items = [];
     var last = sk.tests.length ? sk.tests[sk.tests.length - 1].date : null;
-    var testDue = !last || daysBetween(last, dayKey()) >= TEST_EVERY_DAYS;
-    var conts = [], weak = [], fresh = [];
-    Object.keys(info).forEach(function (s) {
-      info[s].forEach(function (x, l) {
-        if (x.answered > 0 && !x.done) conts.push({ site: s, level: l, kind: "continue" });
-        if (x.done && x.first < 7) weak.push({ site: s, level: l, kind: "review", first: x.first, need: 7 - x.first });
-      });
-    });
-    TOPICS.forEach(function (_, t) {
-      var rec = sk.topics[t];
-      if (rec && rec.status !== "first") weak.push({ site: "test", level: t, kind: "review", status: rec.status, need: rec.status === "miss" ? 6 : 3 });
-    });
-    weak.sort(function (a, b) { return b.need - a.need; });
-    var doneN = function (s) { return info[s].filter(function (x) { return x.done; }).length; };
-    var order = Object.keys(info).sort(function (a, b) { return doneN(a) - doneN(b); });
-    [0, 1, 2].forEach(function (k) {
-      order.forEach(function (s) {
-        var f = info[s].findIndex(function (x) { return !x.done; });
-        if (f >= 0 && f + k < 10 && info[s][f + k].answered === 0) fresh.push({ site: s, level: f + k, kind: "new" });
-      });
-    });
-    if (testDue) add({ site: "testrun", level: -1, kind: "test", firstTest: !last });
-    add(conts[0]);
-    add(varied(weak));
-    add(varied(fresh));
-    [conts, weak, fresh].forEach(function (list) { while (items.length < goal && varied(list)) add(varied(list)); });
-    if (items.length < goal) { // everything is done: practice where she can still improve
-      var all = [];
-      Object.keys(info).forEach(function (s) { info[s].forEach(function (x, l) { all.push({ site: s, level: l, kind: "review", first: x.first }); }); });
-      all.sort(function (a, b) { return a.first - b.first; });
-      all.forEach(add);
-    }
+    if (!last || daysBetween(last, dayKey()) >= TEST_EVERY_DAYS) items.push({ site: "testrun", level: -1, kind: "test", firstTest: !last });
+    for (var r = 0; items.length < GOAL; r++) items.push({ site: "practice", level: r, kind: "practice" });
     return items;
   }
 
@@ -98,10 +67,13 @@
     var d = get(DKEY) || { days: {} };
     var t = dayKey();
     if (!d.days[t]) {
-      d.days[t] = { mission: plan(), done: [], secs: 0, missionAt: null };
+      d.days[t] = { v: 2, mission: plan(), done: [], secs: 0, missionAt: null };
       var keys = Object.keys(d.days).sort();
       while (keys.length > 60) delete d.days[keys.shift()];
       put(DKEY, d);
+    }
+    else if (!d.days[t].v && !d.days[t].done.length) { // planned today by the old planner and not started: use the new plan
+      d.days[t].mission = plan(); d.days[t].v = 2; put(DKEY, d);
     }
     return d;
   }
@@ -113,18 +85,24 @@
   function itemName(it) {
     if (it.site === "testrun") return "מבחן תרגול: 20 שאלות מכל הנושאים";
     if (it.site === "test") return "תרגול נושא מהמבחן: " + TOPICS[it.level];
+    if (it.site === "practice") return "תרגול חילוק ושברים: פרק " + (it.level + 1) + " (10 שאלות)";
     return SITES[it.site].name + " · שלב " + (it.level + 1) + ": " + SITES[it.site].levels[it.level];
   }
   function itemHref(it) {
     if (it.site === "testrun") return "../gaia-test/#test";
     if (it.site === "test") return "../gaia-test/#T" + (it.level + 1);
+    if (it.site === "practice") return "../gaia-practice/#go";
     return SITES[it.site].path + "#L" + (it.level + 1);
   }
   function mins(secs) { return Math.max(0, Math.round(secs / 60)); }
 
-  var KIND = { "continue": "להמשיך", review: "חיזוק", "new": "חדש", test: "מבחן" };
+  var KIND = { "continue": "להמשיך", review: "חיזוק", "new": "חדש", test: "מבחן", practice: "תרגול" };
   function why(it) {
     if (it.kind === "test") return it.firstTest ? "כדי שאכיר את הרמה שלך בכל נושא ואבנה לך תוכנית אישית." : "עבר שבוע מהמבחן הקודם. בואי נראה כמה התקדמת!";
+    if (it.kind === "practice") {
+      var c = currentSkill();
+      return c < 0 ? "סיימת את כל המסלול! עכשיו חזרה על הכול." : it.level === 0 ? "ממשיכים מהשלב שלך: " + skillName(c) + "." : "עוד 10 שאלות, עם חזרה על מה שכבר למדת.";
+    }
     if (it.kind === "continue") return "התחלת אותו ועוד לא סיימת.";
     if (it.site === "test") return it.status === "miss" ? "בנושא הזה עוד לא הצלחת. 5 שאלות חדשות עם רמזים והסברים." : "הצלחת רק בניסיון נוסף. 5 שאלות כדי שיהיה קל.";
     if (it.kind === "review") return "בפעם הקודמת היו " + it.first + " מתוך 10 נכונות בניסיון הראשון. נחזק אותו עד שיהיה קל.";
@@ -140,7 +118,7 @@
     ".gd-items li{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center;padding:10px 12px;border-radius:14px;background:var(--bg,#f4f4f4)}" +
     ".gd-items li.done{opacity:.75}" +
     ".gd-tag{grid-row:span 2;font-size:.8rem;padding:3px 10px;border-radius:99px;white-space:nowrap}" +
-    ".gd-tag.new{background:rgba(23,143,130,.2)}.gd-tag.review{background:rgba(224,138,30,.25)}.gd-tag.continue{background:rgba(110,120,140,.22)}.gd-tag.test{background:rgba(70,100,220,.22)}" +
+    ".gd-tag.new{background:rgba(23,143,130,.2)}.gd-tag.review{background:rgba(224,138,30,.25)}.gd-tag.continue{background:rgba(110,120,140,.22)}.gd-tag.test{background:rgba(70,100,220,.22)}.gd-tag.practice{background:rgba(23,143,130,.2)}" +
     ".gd-more{align-self:flex-start;color:var(--accent,#06c);font-weight:700}" +
     ".gd-sec{background:var(--surface,#fff);border-radius:20px;padding:18px 20px;display:flex;flex-direction:column;gap:12px}" +
     ".gd-sec h2{margin:0}.gd-sub{color:var(--muted,#666);font-size:.95rem;margin:0}" +
@@ -235,6 +213,7 @@
       var levels = day.done.map(function (x) {
         if (x.site === "testrun") return "מבחן (" + x.first + "/20)";
         if (x.site === "test") return "תרגול: " + TOPICS[x.level] + " (" + x.first + "/5)";
+        if (x.site === "practice") return "פרק " + (x.level + 1) + " (" + x.first + "/10)";
         return SITES[x.site].name + " " + (x.level + 1) + " (" + x.first + "/10)";
       }).join(", ") || "—";
       return "<tr><td class=n>" + (+p[2]) + "/" + (+p[1]) + "</td><td class=n>" + mins(day.secs) + "</td><td>" + status + "</td><td>" + esc(levels) + "</td></tr>";
@@ -244,14 +223,18 @@
   }
 
   /* ---------- her personal plan page ---------- */
+  // status of one path step: from the combined practice when she has practiced it there, else from the old level sites
+  function pathStatus(i, p, info) {
+    var x = p && p.sk[i];
+    if (x && x.mastered) return "good";
+    if (x && x.seen) return x.miss >= 4 && x.score < 2 ? "weak" : x.score >= 3 ? "almost" : "doing";
+    return levelStatus(info[PATH[i][0]][PATH[i][1]]);
+  }
   function allSkills() {
-    var sk = skills(), out = [];
-    ["fractions", "division"].forEach(function (s) {
-      var info = levelInfo(s);
-      info.forEach(function (x, l) {
-        var open = l === 0 || info[l - 1].done;
-        out.push({ group: SITES[s].name, name: "שלב " + (l + 1) + ": " + SITES[s].levels[l], status: levelStatus(x), href: open ? SITES[s].path + "#L" + (l + 1) : null });
-      });
+    var sk = skills(), p = practice(), out = [];
+    var info = { fractions: levelInfo("fractions"), division: levelInfo("division") };
+    PATH.forEach(function (step, i) {
+      out.push({ group: "המסלול: חילוק ושברים", name: (i + 1) + ". " + skillName(i), status: pathStatus(i, p, info), href: "../gaia-practice/" });
     });
     TOPICS.forEach(function (name, t) {
       var g = TOPIC_GROUPS.filter(function (x) { return t >= x[1] && t < x[2]; })[0][0];
@@ -279,12 +262,12 @@
 
     // what the plan knows about her
     var strong = list.filter(function (x) { return x.status === "good"; }).slice(-3).map(function (x) { return x.name; });
-    var shortName = function (it) { return it.site === "test" ? TOPICS[it.level] : SITES[it.site].name + ", שלב " + (it.level + 1); };
-    var focus = plan(8, []).filter(function (x) { return x.kind === "review"; }).slice(0, 3).map(shortName);
+    var cur = currentSkill();
+    var focus = (cur >= 0 ? [skillName(cur)] : []).concat(list.filter(function (x) { return x.status === "weak"; }).map(function (x) { return x.name.replace(/^\d+\. /, ""); })).slice(0, 3);
     var know = '<section class="gd-sec"><h2>מה אני יודע עלייך, גאיה</h2><ul class="gd-know">' +
       "<li><b>החוזקות שלך:</b> " + (strong.length ? esc(strong.join(", ")) : "עוד מעט נגלה! כל שלב שתסיימי יופיע כאן.") + "</li>" +
       "<li><b>מה מחזקים עכשיו:</b> " + (focus.length ? esc(focus.join(", ")) : "כרגע אין נושא שצריך חיזוק. כל הכבוד!") + "</li>" +
-      "<li><b>איך אני בוחר:</b> קודם מבחן כדי להכיר את הרמה שלך (ואחר כך פעם בשבוע), אחר כך שלב שהתחלת, נושא שקשה לך, ושלב חדש.</li></ul></section>";
+      "<li><b>איך אני בוחר:</b> חילוק ושברים במסלול אחד, שאלה אחרי שאלה. עוברים שלב אחרי 5 תשובות נכונות בניסיון הראשון, וכל שאלה חמישית היא חזרה על שלב קודם. פעם בשבוע יש מבחן.</li></ul></section>";
 
     var groups = [];
     list.forEach(function (x) { var g = groups.filter(function (y) { return y.name === x.group; })[0]; if (!g) groups.push(g = { name: x.group, items: [] }); g.items.push(x); });
@@ -303,10 +286,13 @@
         }).join("") + "</div></details>";
       }).join("") + "</section>";
 
-    var next = plan(5, today().mission);
-    var nextHTML = '<section class="gd-sec"><h2>בימים הקרובים</h2><p class="gd-sub">אחרי המשימה של היום, זה מה שמחכה לך (התוכנית מתעדכנת לפי מה שתעשי).</p><ol class="gd-items">' +
-      next.map(function (it) {
-        return '<li><span class="gd-tag ' + it.kind + '">' + KIND[it.kind] + '</span><span class="gd-name">' + esc(itemName(it)) + '</span><span class="gd-later"></span><span class="gd-why">' + why(it) + "</span></li>";
+    var upcoming = [];
+    var pst = practice();
+    for (var k = Math.max(cur, 0); k < PATH.length && upcoming.length < 5; k++) if (!(pst && pst.sk[k].mastered)) upcoming.push(k);
+    var nextHTML = '<section class="gd-sec"><h2>השלבים הבאים במסלול</h2><p class="gd-sub">' + (cur < 0 ? "סיימת את כל 20 השלבים! עכשיו התרגול הוא חזרה על הכול." : "השלב שאת בו עכשיו, ואלה שאחריו.") + '</p><ol class="gd-items">' +
+      upcoming.map(function (k) {
+        return '<li><span class="gd-tag ' + (k === cur ? "practice" : "new") + '">' + (k === cur ? "עכשיו" : "בהמשך") + '</span><span class="gd-name">' + (k + 1) + ". " + esc(skillName(k)) + '</span><span class="gd-later"></span><span class="gd-why">' +
+          (k === cur ? "עוברים אותו אחרי 5 תשובות נכונות בניסיון הראשון." : "ייפתח אחרי השלבים שלפניו.") + "</span></li>";
       }).join("") + "</ol></section>";
 
     var tests = sk.tests.slice(-8);
@@ -465,6 +451,12 @@
 
   /* ---------- what the pages call ---------- */
   window.GaiaDaily = {
+    PATH: PATH,
+    ROUND: ROUND,
+    skillName: skillName,
+    dayKey: dayKey,
+    // chapters of the combined practice finished today (the next one gets this number)
+    roundsToday: function () { return today().done.filter(function (x) { return x.site === "practice"; }).length; },
     missionHTML: missionHTML,
     logHTML: logHTML,
     progressHTML: progressHTML,

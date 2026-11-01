@@ -36,7 +36,7 @@ h1{font-size:2.1rem} h2{font-size:1.4rem} h3{font-size:1.1rem}
 p{margin:0}
 a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .sub{color:var(--muted)}
-.sites{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.sites{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 .site{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:16px;background:var(--surface);border:2px solid var(--line);color:var(--ink);text-decoration:none}
 .site:hover{border-color:var(--accent)}
 .site b{font-family:var(--display);font-weight:400;font-size:1.1rem}
@@ -61,8 +61,7 @@ function render(){
   view.innerHTML=`${GaiaDaily.missionHTML({onPlan:true})}
     ${GaiaDaily.progressHTML()}
     <nav class="sites" aria-label="אתרי התרגול">
-      <a class="site" href="../gaia/"><b>מסע השברים</b><span>10 שלבים, מזיהוי שבר ועד חילוק שברים</span></a>
-      <a class="site" href="../gaia-division/"><b>מסע החילוק הארוך</b><span>10 שלבים, עם הדגמה שלב אחרי שלב</span></a>
+      <a class="site" href="../gaia-practice/"><b>התרגול: חילוק ושברים</b><span>מסלול אחד, שאלה אחרי שאלה, לפי הרמה שלך</span></a>
       <a class="site" href="../gaia-test/"><b>המבחן ותרגול לפי נושא</b><span>20 נושאים של מבחן תחילת השנה</span></a>
     </nav>
     <div class="log">${GaiaDaily.logHTML()}</div>`;

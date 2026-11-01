@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>התרגול של גאיה</title>
+<meta name="theme-color" content="#1D2F55">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="תרגול">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Secular+One&family=Varela+Round&display=swap">
+<style>
+/* Layout: one column. Home = where she is on the path + the path; practice = one question at a time */
+:root{
+  --bg:#EEF2F8; --surface:#FFFFFF; --surface2:#DCE4F0; --ink:#17223A; --muted:#566883;
+  --accent:#2F64D6; --accent-ink:#FFFFFF; --fr:#E2702E; --fr-soft:#FCE7DA; --dv-soft:#DDE7FB;
+  --hl:#FFE29A; --teal:#178F82; --berry:#C93A60; --line:#C5D1E3;
+  --good-bg:#DDF3EE; --bad-bg:#FBE3EA;
+  --display:"Secular One","Varela Round",system-ui,sans-serif;
+  --body:"Varela Round",system-ui,"Segoe UI",Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#111827; --surface:#1A2436; --surface2:#2A3850; --ink:#E7EDF6; --muted:#9AA9C0;
+  --accent:#7FA6FF; --accent-ink:#0E1626; --fr:#F4884A; --fr-soft:#3E2A1E; --dv-soft:#1F2D4D;
+  --hl:#6B5418; --teal:#3CC2B2; --berry:#F0728F; --line:#33435E;
+  --good-bg:#173A36; --bad-bg:#3F1F2A; color-scheme:dark}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:max(24px,env(safe-area-inset-top,0px)) max(48px,env(safe-area-inset-bottom,0px))}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;line-height:1.2}
+h1{font-size:2.1rem} h2{font-size:1.45rem} h3{font-size:1.15rem}
+p{margin:0}
+button{font:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+bdi.m{direction:ltr;unicode-bidi:isolate;white-space:nowrap;font-variant-numeric:tabular-nums}
+.sub{color:var(--muted)}
+.card{background:var(--surface);border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:16px;box-shadow:0 2px 0 var(--line)}
+.btn{background:var(--accent);color:var(--accent-ink);border:none;border-radius:12px;padding:12px 26px;font-family:var(--display);font-size:1.1rem;text-decoration:none;display:inline-block}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line)}
+.btn.big{font-size:1.3rem;padding:14px 30px}
+.linkbtn{background:none;border:none;color:var(--muted);text-decoration:underline;padding:4px}
+.actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:.9rem}
+.foot a{color:var(--accent)}
+
+/* subject chips: division blue, fractions orange */
+.subj{display:inline-block;padding:2px 12px;border-radius:99px;font-size:.85rem;white-space:nowrap}
+.subj.division{background:var(--dv-soft);color:var(--ink)}
+.subj.fractions{background:var(--fr-soft);color:var(--ink)}
+.subj.review{background:var(--surface2)}
+
+/* where she is */
+.here{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;align-items:center}
+.here .stepno{grid-row:span 2;width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--accent-ink);font-family:var(--display);font-size:1.6rem;line-height:1}
+.dots5{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.dots5 i{width:14px;height:14px;border-radius:50%;background:var(--surface2)}
+.dots5 i.on{background:var(--teal)}
+.dots5 span{font-size:.85rem;color:var(--muted);margin-inline-start:6px}
+
+/* the path */
+.path{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.path li{display:grid;grid-template-columns:2.2em auto 1fr auto;gap:10px;align-items:center;padding:8px 10px;border-radius:12px;background:var(--bg)}
+.path li .n{font-family:var(--display);color:var(--muted);text-align:center;font-variant-numeric:tabular-nums}
+.path li .nm{min-width:0;line-height:1.35}
+.path li .stt{font-size:.82rem;white-space:nowrap;color:var(--muted)}
+.path li.done .stt{color:var(--teal);font-weight:700}
+.path li.now{background:var(--surface);box-shadow:inset 0 0 0 2px var(--accent)}
+.path li.now .stt{color:var(--accent);font-weight:700}
+.path li.later{opacity:.6}
+@media (max-width:440px){.path li{grid-template-columns:2em 1fr auto}.path li .subj{display:none}}
+
+/* question */
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.where{color:var(--muted);font-variant-numeric:tabular-nums}
+.bar{height:10px;border-radius:99px;background:var(--surface2);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .4s}
+.chips{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.lesson{background:var(--surface);border-radius:14px;padding:14px 18px;border:2px dashed var(--line)}
+.lesson summary{cursor:pointer;font-family:var(--display);color:var(--accent)}
+.lesson .body{display:flex;flex-direction:column;gap:12px;margin-top:8px}
+.qtext{font-size:1.2rem;line-height:1.7}
+.expr{direction:ltr;unicode-bidi:isolate;text-align:center;font-size:2rem;display:flex;justify-content:center;align-items:center;gap:.35em;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+.pic{display:flex;justify-content:center}
+.pic svg{max-width:100%;height:auto}
+.pic .on{fill:var(--fr)} .pic .off{fill:var(--surface2)}
+.pic path,.pic rect{stroke:var(--ink);stroke-width:2}
+.mixed{display:inline-flex;align-items:center;gap:.12em;direction:ltr;unicode-bidi:isolate;vertical-align:middle}
+.frac{display:inline-flex;flex-direction:column;align-items:center;line-height:1.15;font-size:.9em}
+.frac>span{padding:0 .2em}
+.frac>span:first-child{border-bottom:2px solid currentColor}
+.qm{display:inline-block;min-width:1.1em;border:2px dashed var(--fr);border-radius:6px;color:var(--fr);text-align:center;line-height:1.1}
+.choices{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.choice{background:var(--bg);border:2px solid var(--line);border-radius:14px;padding:14px;font-size:1.5rem;color:var(--ink);min-height:72px;display:flex;align-items:center;justify-content:center}
+.choice:hover:not(:disabled){border-color:var(--accent)}
+.choice.sel{border-color:var(--accent);background:var(--surface);box-shadow:inset 0 0 0 2px var(--accent)}
+.choice.right{border-color:var(--teal);background:var(--good-bg)}
+.choice.wrong{border-color:var(--berry);background:var(--bad-bg)}
+.inrow,.ans{display:flex;justify-content:center;align-items:center;gap:16px;flex-wrap:wrap}
+.fracin{display:inline-flex;flex-direction:column;align-items:center;gap:6px;direction:ltr}
+.fracin hr{width:100%;border:none;border-top:3px solid var(--ink);margin:0}
+.fld{display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--muted);font-size:.95rem}
+.box{width:110px;font:inherit;font-size:1.6rem;text-align:center;padding:6px;border:2px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-variant-numeric:tabular-nums;direction:ltr}
+.box.wide{width:140px}
+.box:focus{border-color:var(--accent);outline:none}
+.paper{color:var(--muted);font-size:.9rem;text-align:center}
+.fb{border-radius:14px;padding:14px 18px;display:flex;flex-direction:column;gap:6px;font-size:1.05rem}
+.fb.good{background:var(--good-bg)} .fb.bad{background:var(--bad-bg)} .fb.info{background:var(--surface2)}
+.fb strong{font-family:var(--display);font-weight:400;font-size:1.2rem}
+.solution{display:flex;flex-direction:column;gap:12px;border-top:2px dashed var(--line);padding-top:16px}
+.level-up{border-radius:14px;padding:14px 18px;background:var(--hl);display:flex;flex-direction:column;gap:4px}
+.level-up strong{font-family:var(--display);font-weight:400;font-size:1.25rem}
+.result{text-align:center;align-items:center}
+.result .big{font-family:var(--display);font-size:3rem;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+
+/* the long-division board (same as the division site) */
+.player{display:flex;flex-direction:column;gap:12px}
+.boardwrap{overflow-x:auto;display:flex;justify-content:center;padding:8px 0}
+.board{direction:ltr;display:inline-grid;font-size:1.8rem;--cw:1.3em;--ch:1.55em;--bw:.7em;font-variant-numeric:tabular-nums;line-height:1}
+.cell{display:grid;place-items:center;border-radius:7px;position:relative;z-index:1}
+.cell.q{color:var(--accent);font-weight:700}
+.cell.op{color:var(--muted)}
+.cell.hl{background:var(--hl)}
+.dv{display:grid;place-items:center;padding-inline:.15em .2em;font-weight:700}
+.brk{border-right:3px solid var(--ink);border-radius:0 55% 55% 0 / 0 50% 50% 0;margin-block:2px}
+.roof{border-top:3px solid var(--ink);align-self:start;height:0;margin-top:-1px}
+.uline{border-bottom:3px solid var(--ink);align-self:end;height:0;margin-bottom:1px}
+.board .new{animation:popin .55s ease-out both}
+.board .new.down{animation:slidedown .9s cubic-bezier(.4,0,.2,1) both}
+.board .uline.new{animation:grow .45s ease-out both;transform-origin:right}
+@keyframes popin{from{opacity:0;transform:translateY(-.35em) scale(.7)}to{opacity:1;transform:none}}
+@keyframes slidedown{from{transform:translateY(calc(var(--dy) * -1 * var(--ch)))}to{transform:none}}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.cycle{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.cycle span{padding:3px 12px;border-radius:99px;background:var(--surface2);color:var(--muted);font-size:.9rem;transition:background .2s}
+.cycle span.on{background:var(--accent);color:var(--accent-ink)}
+.cap{min-height:5.2em;font-size:1.1rem;background:var(--bg);border-radius:12px;padding:12px 16px}
+.pctl{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
+.pbtn{background:var(--surface2);color:var(--ink);border:none;border-radius:10px;padding:8px 16px}
+.pbtn.main{background:var(--accent);color:var(--accent-ink);font-family:var(--display);padding:8px 22px}
+.pbtn:disabled{opacity:.4;cursor:not-allowed}
+.pcount{color:var(--muted);font-size:.9rem;font-variant-numeric:tabular-nums;min-width:4.5em;text-align:center}
+.steps{margin:0;padding-inline-start:1.4em;display:flex;flex-direction:column;gap:6px}
+.steps li.cur{background:var(--hl);border-radius:6px}
+details.written summary{cursor:pointer;color:var(--accent)}
+
+.pop{animation:pop .35s ease-out}
+@keyframes pop{0%{transform:scale(.97)}60%{transform:scale(1.02)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.pop,.board .new,.board .new.down,.board .uline.new{animation:none}.bar>i{transition:none}}
+@media (max-width:440px){h1{font-size:1.75rem}.card{padding:18px}.expr{font-size:1.6rem}.choice{font-size:1.3rem}.board{font-size:1.5rem}.box{width:100px}.box.wide{width:120px}}
+</style>
+<script src="../gaia-daily.js"></script>
+<script src="../gaia-core/fractions.js"></script>
+<script src="../gaia-core/division.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>התרגול של גאיה</h1>
+    <p class="sub">חילוק ושברים במסלול אחד, שאלה אחרי שאלה. אני בוחר בשבילך את השאלה הבאה לפי מה שאת כבר יודעת.</p>
+  </header>
+  <main class="wrap" id="view" style="max-width:none"></main>
+</div>
+
+<script>
+const $=s=>document.querySelector(s), view=$("#view");
+const {fmt,pic,gcd,shuffle}=FR;
+const m=DV.m;
+const PATH=GaiaDaily.PATH, ROUND=GaiaDaily.ROUND;
+const MASTER=5;          // first-try right answers that complete a step
+const REVIEW_EVERY=5;    // every fifth question goes back to a step she already knows
+const SUBJ={division:"חילוק ארוך",fractions:"שברים"};
+const lv=i=>{const [s,l]=PATH[i];return (s==="fractions"?FR:DV).LEVELS[l]};
+const pickOne=a=>a[Math.floor(Math.random()*a.length)];
+
+/* ---------- messages for Gaia ---------- */
+const PRAISE=["כל הכבוד גאיה! אבי ממש שמח שהצלחת.","וואו, גאיה! תשובה מושלמת. אבי גאה בך.","גאיה דור עושה את זה שוב! אבי קופץ משמחה.",
+ "גוווול! גאיה בועטת, והתרגיל נכנס לרשת! הקהל משתולל, ובעיקר אבי.","בדיוק! אבי אומר: ידעתי שתצליחי.","יש! גאיה 1, מתמטיקה 0. אבי מוחא כפיים.",
+ "מבזק: מדענים מאשרים שגאיה דור גאונה. אבי בכלל לא מופתע.","תשובה של אלופה! אבי שמח בשבילך, גאיה.","פששש, גאיה! איזה ראש. אבי מרוצה.",
+ "גאיה, את מדהימה! אבי שולח לך חיבוק ענק.","הצלחת! אבי עושה עכשיו ריקוד ניצחון בסלון.","תותחית! אבי שמח שאת מבינה את זה כל כך טוב.",
+ "טראח! עוד שאלה נפלה. אבי שמח, גאיה.","אש! השאלות כבר מפחדות ממך. אבי מת עלייך.","כפיים לגאיה! אבי מוחא הכי חזק.","נכון! מכאן ועד הירח, אבי גאה בך."];
+const PRAISE_RETRY=["לא ויתרת, וזה מה שחשוב! אבי שמח, גאיה.","בניסיון השני, והפעם בול! כל הכבוד גאיה.","ככה אלופות עושות: מתקנות וממשיכות. אבי גאה בך."];
+const TRY_AGAIN=["עוד לא, גאיה. נסי שוב, את יכולה!","כמעט! עוד ניסיון אחד, גאיה.","לא נורא, גאיה. תסתכלי על הרמז ונסי שוב."];
+const SHOWN=["לא נורא, גאיה. ככה לומדים!","זה בסדר, גאיה. בואי נראה יחד איך פותרים.","לא נורא! אבי אומר שטעויות הן חלק מהלמידה."];
+const bags=new Map();
+function pickFrom(list){let b=bags.get(list);if(!b||!b.length){b=shuffle(list);bags.set(list,b)}return b.pop()}
+
+/* ---------- what she knows (per browser) ---------- */
+const KEY="gaia-practice-v1";
+let P=null;
+try{P=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!P||!Array.isArray(P.sk)||P.sk.length!==PATH.length)
+  P={sk:PATH.map(()=>({score:0,first:0,seen:0,miss:0,streakMiss:0,mastered:false,next:0})),sinceReview:0,warmup:null,round:null};
+function save(){try{localStorage.setItem(KEY,JSON.stringify(P))}catch(e){}}
+const target=()=>P.sk.findIndex(s=>!s.mastered);
+function roundNow(){
+  const d=GaiaDaily.dayKey();
+  if(!P.round||P.round.date!==d||P.round.n>=ROUND)P.round={date:d,n:0,first:0,leveled:[]};
+  return P.round;
+}
+
+/* ---------- choosing the next question ---------- */
+let cur=null;   // {i: path step, kind: main | review | warmup, q}
+function nextQuestion(){
+  let i=target(),kind="main";
+  const known=P.sk.map((s,k)=>s.mastered?k:-1).filter(k=>k>=0);
+  if(P.warmup!=null){i=P.warmup;P.warmup=null;kind="warmup"}
+  else if(i<0){i=pickOne(known);kind="review"}
+  else if(P.sinceReview>=REVIEW_EVERY-1&&known.length){i=pickOne(known.slice(-4));kind="review";P.sinceReview=0}
+  else P.sinceReview++;
+  const [site,l]=PATH[i],s=P.sk[i],L=lv(i);
+  let q;
+  // the level's own questions come first, in order (easy to hard); after them, new ones of the same kind
+  if(kind==="main"&&s.next<L.qs.length)q=L.qs[s.next++];
+  else q=site==="fractions"?FR.SIMILAR[l](pickOne(L.qs)):DV.similar(pickOne(L.qs),new Set());
+  cur={i,kind,q};
+  save();
+}
+
+/* ---------- home ---------- */
+function home(){
+  DV.stopAll();
+  const t=target(),r=P.round&&P.round.date===GaiaDaily.dayKey()&&P.round.n>0&&P.round.n<ROUND?P.round:null;
+  const s=t>=0?P.sk[t]:null;
+  view.innerHTML=`<div class="card">
+    ${t>=0?`<div class="here"><span class="stepno">${t+1}</span><h2>${SUBJ[PATH[t][0]]}: ${lv(t).name}</h2>
+      <div class="dots5">${Array.from({length:MASTER},(_,k)=>`<i class="${k<s.score?"on":""}"></i>`).join("")}<span>${s.score} מתוך ${MASTER} כדי לעבור לשלב הבא</span></div></div>
+      <p>את בשלב ${t+1} מתוך ${PATH.length} במסלול. ${s.seen?"ממשיכים מאיפה שעצרת.":"בשלב הזה יש הסבר קצר בהתחלה, ואחר כך שאלות."}</p>`
+      :`<h2>סיימת את כל ${PATH.length} השלבים! 🎉</h2><p>עכשיו כל שאלה היא חזרה על מה שלמדת. אבי כל כך גאה בך.</p>`}
+    <div class="actions"><button class="btn big" id="go">${r?`להמשיך את הפרק (שאלה ${r.n+1} מתוך ${ROUND})`:"להתחיל לתרגל ←"}</button></div>
+    <p class="sub">כל פרק הוא ${ROUND} שאלות. אחרי כל שאלה יש הסבר, ואחרי טעות מקבלים שאלה דומה.</p>
+  </div>
+  ${GaiaDaily.missionHTML()}
+  <div class="card">
+    <h2>המסלול שלך</h2>
+    <ol class="path">${PATH.map(([site],k)=>{
+      const st=P.sk[k].mastered?"done":k===t?"now":k>t&&t>=0?"later":"";
+      return `<li class="${st}"><span class="n">${k+1}</span><span class="subj ${site}">${SUBJ[site]}</span><span class="nm">${lv(k).name}</span><span class="stt">${st==="done"?"שולטת ✓":st==="now"?"עכשיו":"בהמשך"}</span></li>`}).join("")}</ol>
+  </div>
+  <div class="foot"><span><a href="../gaia-plan/">התוכנית האישית שלי</a> · <a href="../gaia-test/">מבחן ותרגול לפי נושא</a></span><span>ההתקדמות נשמרת בדפדפן הזה.</span></div>`;
+  $("#go").onclick=practiceNow;
+}
+function practiceNow(){roundNow();save();if(!cur)nextQuestion();show();window.scrollTo(0,0)}
+
+/* ---------- one question ---------- */
+let tries=0,sel=null,finished=false,failed=false,demo=null;
+function show(){
+  DV.stopAll();
+  const {i,kind,q}=cur,[site]=PATH[i],s=P.sk[i],L=lv(i),R=roundNow();
+  tries=0;sel=null;finished=false;failed=false;
+  const firstOfStep=kind==="main"&&s.seen===0;
+  const struggling=kind==="main"&&s.streakMiss===2;   // shown once, right after the second miss in a row
+  const chips=`<span class="subj ${site}">${SUBJ[site]}</span><span class="subj ${kind==="main"?site:"review"}">${kind==="main"?`שלב ${i+1}: ${L.name}`:kind==="review"?`חזרה: ${L.name}`:`רגע של חזרה: ${L.name}`}</span>`;
+  let body,board="";
+  if(site==="division"){
+    demo=DV.buildDemo(q.D,q.d);
+    board=`<div class="boardwrap">${DV.renderBoard(demo,0,false)}</div><p class="paper">כדאי לפתור על דף, ואז לכתוב כאן את התשובה.</p>`;
+    body=q.ans!=null
+      ?`<div class="ans"><label class="fld"><span>${q.label}</span><input class="box wide" id="inA" inputmode="numeric" autocomplete="off"></label></div>`
+      :`<div class="ans"><label class="fld"><span>מנה (התשובה)</span><input class="box wide" id="inQ" inputmode="numeric" autocomplete="off"></label>
+         <label class="fld"><span>שארית (אם אין, השאירי ריק)</span><input class="box" id="inR" inputmode="numeric" autocomplete="off"></label></div>`;
+  }else if(q.k==="mc"){
+    body=`<div class="choices">${shuffle(q.ch).map(c=>`<button class="choice" data-v="${c}">${fmt(c)}</button>`).join("")}</div>`;
+  }else if(q.k==="frac"){
+    body=`<div class="inrow"><span class="fracin"><input class="box" id="inN" inputmode="numeric" autocomplete="off" aria-label="מונה"><hr><input class="box" id="inD" inputmode="numeric" autocomplete="off" aria-label="מכנה"></span></div>`;
+  }else{
+    body=`<div class="inrow"><input class="box" id="inX" inputmode="numeric" autocomplete="off" aria-label="התשובה"></div>`;
+  }
+  const lessonOpen=firstOfStep||struggling;
+  view.innerHTML=`<section class="wrap" style="gap:14px">
+    <div class="qhead"><button class="linkbtn" id="back">→ למסך הראשי</button><span class="where">פרק · שאלה ${R.n+1} מתוך ${ROUND}</span></div>
+    <div class="bar" aria-hidden="true"><i style="width:${R.n/ROUND*100}%"></i></div>
+    ${firstOfStep?`<div class="fb good pop"><strong>${i===0?"יאללה גאיה, מתחילים!":"שלב חדש!"}</strong><p>${i===0?"קודם הסבר קצר, ואחר כך שאלה. אבי איתך.":`עכשיו: ${SUBJ[site]}, ${L.name}. קראי את ההסבר, ואז ננסה.`}</p></div>`:""}
+    ${struggling?`<div class="fb info pop"><strong>בואי נחזור רגע על ההסבר, גאיה</strong><p>השאלות האחרונות היו קשות. ${site==="division"?"צפי בהדגמה":"קראי את ההסבר"} כאן למטה, ואז ממשיכים. זה יעזור!</p></div>`:""}
+    <details class="lesson" id="lesson" ${lessonOpen?"open":""}><summary>${site==="division"?"תזכורת והדגמה":"תזכורת"}: ${L.name}</summary>
+      <div class="body"><p>${site==="division"?L.lesson:fmt(L.lesson)}</p>${site==="division"?`<p>הנה דוגמה: ${m(`${L.ex[0]} ÷ ${L.ex[1]}`)}</p><div id="lessonDemo"></div>`:""}</div></details>
+    <div class="card">
+      <div class="chips">${chips}</div>
+      ${kind==="main"?`<div class="dots5" aria-label="${s.score} מתוך ${MASTER}">${Array.from({length:MASTER},(_,k)=>`<i class="${k<s.score?"on":""}"></i>`).join("")}<span>${MASTER-s.score} נכונות בניסיון הראשון ועוברים שלב</span></div>`:""}
+      <p class="qtext">${site==="division"?(q.t||"פתרי בחילוק ארוך:"):fmt(q.t)}</p>
+      ${site==="division"?(q.t?"":`<div class="expr">${q.D} ÷ ${q.d} = ?</div>`):q.e?`<div class="expr">${fmt(q.e)}</div>`:""}
+      ${q.p?`<div class="pic">${pic(q.p)}</div>`:""}
+      ${board}
+      ${body}
+      <div id="fb"></div>
+      <div class="actions"><button class="btn" id="go" ${site!=="division"&&q.k==="mc"?"disabled":""}>בדיקה</button><button class="btn ghost" id="show" hidden>תראי לי את הפתרון</button></div>
+      <div id="sol"></div>
+    </div></section>`;
+  $("#back").onclick=home;
+  if(site==="division"){
+    let lp=null;const mount=()=>{if(!lp)lp=DV.makePlayer($("#lessonDemo"),DV.buildDemo(...L.ex),{written:false})};
+    if(lessonOpen)mount();
+    $("#lesson").addEventListener("toggle",e=>{if(e.target.open)mount()});
+  }
+  if(site!=="division"&&q.k==="mc"){
+    view.querySelectorAll(".choice").forEach(b=>b.onclick=()=>{
+      if(finished)return;
+      view.querySelectorAll(".choice").forEach(x=>x.classList.remove("sel","wrong"));
+      b.classList.add("sel");sel=b.dataset.v;$("#go").disabled=false;
+    });
+  }else{
+    view.querySelectorAll(".box").forEach(x=>x.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("#go").click()}}));
+    view.querySelector(".box").focus({preventScroll:true});
+  }
+  $("#go").onclick=()=>finished?next():check();
+  $("#show").onclick=()=>finish("miss");
+}
+
+/* ---------- checking an answer ---------- */
+const num=v=>{v=v.trim();return v===""?null:/^\d+$/.test(v)?+v:NaN};
+function info(msg){$("#fb").innerHTML=`<div class="fb info pop">${msg}</div>`}
+function check(){
+  const {i,q}=cur,[site]=PATH[i];
+  let ok,hint,note="";
+  if(site==="division"){
+    const {D,d}=q,Q=Math.floor(D/d),R=D%d;
+    if(q.ans!=null){
+      const a=num($("#inA").value);
+      if(a===null||Number.isNaN(a))return info("כתבי מספר שלם.");
+      ok=a===q.ans;
+      hint=a===Q?`נכון ש־${m(`${D} ÷ ${d} = ${Q}`)}, אבל יש שארית. מה קורה עם הילדים שנשארו?`:`חשבי: כמה ילדים נכנסים ב־${m(Q)} אוטובוסים? ומה עם השאר?`;
+    }else{
+      const qq=num($("#inQ").value),rr0=num($("#inR").value);
+      if(qq===null)return info("כתבי את המנה (התשובה) בתיבה הראשונה.");
+      if(Number.isNaN(qq)||Number.isNaN(rr0))return info("כתבי רק ספרות, בלי סימנים.");
+      const rr=rr0||0;
+      ok=qq===Q&&rr===R;
+      if(rr>=d)hint=`השארית ${m(rr)} לא יכולה להיות שווה ל־${m(d)} או גדולה ממנו. אם נשאר כל כך הרבה, אפשר לחלק עוד פעם.`;
+      else if(qq===Q)hint=`המנה ${m(qq)} נכונה! רק השארית לא. בדקי שוב את החיסור האחרון.`;
+      else if(String(Q).includes("0")&&String(qq)===String(Q).replace(/0/g,""))hint="כמעט! שכחת 0 בתשובה. כשהמחלק לא נכנס אחרי שהורדת ספרה, כותבים 0 למעלה.";
+      else{const v=qq*d+rr;hint=`בואי נבדוק: ${m(`${qq} × ${d}${rr?` + ${rr}`:""} = ${v}`)}, וזה ${v>D?"יותר":"פחות"} מ־${m(D)}. כלומר המנה ${v>D?"גדולה":"קטנה"} מדי.`}
+    }
+  }else{
+    if(q.k==="mc"){if(sel==null)return;ok=sel===q.a}
+    else if(q.k==="num"){const v=num($("#inX").value);if(v===null||Number.isNaN(v))return info("כתבי מספר שלם בתיבה.");ok=v===q.a}
+    else{
+      const n=num($("#inN").value),dd=num($("#inD").value);
+      if(n===null||dd===null)return info("כתבי מספר גם למעלה (מונה) וגם למטה (מכנה).");
+      if(Number.isNaN(n)||Number.isNaN(dd))return info("כתבי מספרים שלמים בלבד.");
+      if(dd===0)return info("במכנה אסור לכתוב 0.");
+      ok=n*q.a[1]===q.a[0]*dd;
+      if(ok&&q.s&&gcd(n,dd)!==1)return info("השבר נכון, אבל אפשר לצמצם אותו עוד. נסי שוב.");
+      if(ok&&gcd(n,dd)!==1)note=" (התשובה שלך נכונה, וכדאי להתרגל לצמצם עד הסוף.)";
+    }
+    hint=lvTip(i);
+  }
+  tries++;
+  if(ok)return finish(tries===1?"first":"second",note);
+  if(tries===1){
+    $("#fb").innerHTML=`<div class="fb bad pop"><strong>${pickFrom(TRY_AGAIN)}</strong><p>רמז: ${site==="division"?hint:fmt(hint)}</p></div>`;
+    if(site!=="division"&&q.k==="mc")view.querySelector(".choice.sel")?.classList.add("wrong");
+    $("#show").hidden=false;
+    return;
+  }
+  finish("miss");
+}
+// a short rule for the hint: fractions levels have one; for division the hint is computed from her answer
+const lvTip=i=>lv(i).tip||"";
+
+/* ---------- after an answer: explanation, demo, and what she now knows ---------- */
+function finish(res,note=""){
+  finished=true;
+  const {i,kind,q}=cur,[site]=PATH[i],s=P.sk[i],R=roundNow();
+  const wasMastered=s.mastered;
+  s.seen++;
+  if(res==="first"){s.first++;s.score=Math.min(MASTER,s.score+1);s.streakMiss=0}
+  else if(res==="second"){s.streakMiss=0}
+  else{s.miss++;s.score=Math.max(0,s.score-1);s.streakMiss++;failed=true}
+  let event="";
+  if(kind!=="main"){
+    if(res==="miss"&&wasMastered){s.mastered=false;s.score=MASTER-2;event="back"}
+  }else if(!s.mastered){
+    if(s.seen===3&&s.first===3){s.mastered=true;event="fast"}
+    else if(s.score>=MASTER){s.mastered=true;event="up"}
+    // stuck: one warm-up question from the step before it in the same subject
+    if(res==="miss"&&s.streakMiss>=3&&i>=2&&P.sk[i-2].mastered){P.warmup=i-2;s.streakMiss=0}
+  }
+  if(event==="fast"||event==="up")R.leveled.push(i);
+  R.n++;if(res==="first")R.first++;
+  save();
+
+  // the answer and the explanation
+  const ansText=site==="division"?(q.ans!=null?String(q.ans):`${Math.floor(q.D/q.d)}${q.D%q.d?`, שארית ${q.D%q.d}`:""}`)
+    :q.k==="mc"?q.a:q.k==="num"?String(q.a):`[${q.a[0]}/${q.a[1]}]`;
+  const title=res==="first"?pickFrom(PRAISE):res==="second"?pickFrom(PRAISE_RETRY):pickFrom(SHOWN);
+  const ex=site==="division"?(q.note||""):fmt(q.ex)+note;
+  $("#fb").innerHTML=`<div class="fb ${res==="miss"?"info":"good"} pop"><strong>${fmt(title)}</strong>
+    <p>${res==="miss"?"התשובה הנכונה: ":""}${site==="division"?m(ansText):fmt(ansText)}${res==="miss"?"":" נכון."}</p>${ex?`<p>${ex}</p>`:""}</div>
+    ${event==="up"||event==="fast"?`<div class="level-up pop"><strong>${event==="fast"?"כבר יודעת את זה! מדלגים קדימה":"עלית שלב!"}</strong><p>שלטת ב${SUBJ[site]}: ${lv(i).name}. ${target()>=0?`הבא בתור: ${SUBJ[PATH[target()][0]]}, ${lv(target()).name}.`:"סיימת את כל המסלול!"} אבי גאה בך!</p></div>`:""}
+    ${event==="back"?`<div class="fb info pop"><p>השלב הזה עוד צריך קצת חיזוק, אז נחזור אליו לכמה שאלות. זה בדיוק בשביל זה יש חזרות.</p></div>`:""}`;
+  if(site==="division"){
+    $("#sol").innerHTML=`<div class="solution"><h3>ככה פותרים את ${m(`${q.D} ÷ ${q.d}`)}, שלב אחרי שלב</h3><div id="solDemo"></div></div>`;
+    DV.makePlayer($("#solDemo"),demo,{autoplay:true});
+  }else if(q.k==="mc"){
+    view.querySelectorAll(".choice").forEach(b=>{b.disabled=true;if(b.dataset.v===q.a)b.classList.add("right")});
+  }
+  view.querySelectorAll(".box").forEach(x=>x.disabled=true);
+  $("#show").hidden=true;
+  $("#go").textContent=R.n>=ROUND?"לסיכום הפרק":failed?"לשאלה דומה ←":"לשאלה הבאה ←";
+  $("#go").focus({preventScroll:true});
+}
+
+function next(){
+  if(P.round&&P.round.n>=ROUND){roundDone();return}
+  // after a miss, a similar question in the same step (new numbers), unless a warm-up from the step before is due
+  if(failed&&P.warmup==null){const {i,kind}=cur,[site,l]=PATH[i],L=lv(i);
+    cur={i,kind,q:site==="fractions"?FR.SIMILAR[l](cur.q.k?cur.q:pickOne(L.qs)):DV.similar(cur.q,new Set([cur.q.D+"/"+cur.q.d]))};
+  }else nextQuestion();
+  show();window.scrollTo(0,0);
+}
+
+/* ---------- end of a chapter (10 questions) ---------- */
+function roundDone(){
+  DV.stopAll();
+  const R=P.round,f=R.first,ups=R.leveled||[];
+  GaiaDaily.levelDone("practice",GaiaDaily.roundsToday(),f);
+  P.round=null;cur=null;save();
+  const t=target();
+  const msg=f>=9?"מושלם, גאיה! אבי שמח בטירוף.":f>=7?"עבודה מצוינת, גאיה. אבי גאה בך.":f>=4?"יפה מאוד, גאיה! כל שאלה מקרבת אותך.":"זה היה פרק קשה, וזה בסדר. ככה לומדים, ואבי גאה בך שלא ויתרת.";
+  view.innerHTML=`<div class="card result pop">
+    <span class="big">${f}/${ROUND}</span>
+    <h2>כל הכבוד גאיה! סיימת פרק</h2>
+    <p>${f} מתוך ${ROUND} נכונות בניסיון הראשון. ${msg}</p>
+    ${ups.length?`<div class="level-up"><strong>${ups.length===1?"עלית שלב בפרק הזה!":`עלית ${ups.length} שלבים בפרק הזה!`}</strong><p>${ups.map(k=>`${SUBJ[PATH[k][0]]}: ${lv(k).name}`).join(" · ")}</p></div>`:""}
+    <p class="sub">${t>=0?`עכשיו את בשלב ${t+1} מתוך ${PATH.length}: ${SUBJ[PATH[t][0]]}, ${lv(t).name}.`:"סיימת את כל המסלול!"}</p>
+    <div class="actions" style="justify-content:center"><button class="btn" id="again">לפרק הבא ←</button><a class="btn ghost" href="../gaia-plan/">לתוכנית שלי</a><button class="btn ghost" id="home">למסך הראשי</button></div>
+  </div>`;
+  $("#again").onclick=()=>{roundNow();nextQuestion();show();window.scrollTo(0,0)};
+  $("#home").onclick=home;
+  window.scrollTo(0,0);
+}
+
+// the "start" link in today's mission (#go) opens the next question directly
+function route(){
+  if(location.hash!=="#go")return false;
+  history.replaceState(null,"",location.pathname);
+  practiceNow();return true;
+}
+window.addEventListener("hashchange",route);
+route()||home();
+</script>
+</body>
+</html>
